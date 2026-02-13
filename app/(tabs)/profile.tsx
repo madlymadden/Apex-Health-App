@@ -50,7 +50,7 @@ function SettingsRow({ icon, label, value, onPress }: SettingsRowProps) {
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
-  const { goals, profile, workouts } = useHealth();
+  const { goals, profile, workouts, updateProfile } = useHealth();
   const webTopInset = Platform.OS === "web" ? 67 : 0;
 
   const streak = Math.min(workouts.length, 42);
@@ -176,14 +176,41 @@ export default function ProfileScreen() {
           <View style={styles.sectionDivider} />
 
           <Text style={styles.sectionLabel}>PREFERENCES</Text>
-          <SettingsRow icon="moon-outline" label="Appearance" value="Dark" />
+          <SettingsRow 
+            icon="moon-outline" 
+            label="Appearance" 
+            value="Dark" 
+            onPress={() => {
+              if (Platform.OS !== "web") {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              }
+              // TODO: Implement theme settings (currently dark only)
+            }}
+          />
           <View style={styles.rowDivider} />
-          <SettingsRow icon="notifications-outline" label="Notifications" value="On" />
+          <SettingsRow 
+            icon="notifications-outline" 
+            label="Notifications" 
+            value="On" 
+            onPress={() => {
+              if (Platform.OS !== "web") {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              }
+              // TODO: Implement notifications settings
+            }}
+          />
           <View style={styles.rowDivider} />
           <SettingsRow
             icon="globe-outline"
             label="Units"
             value={profile.units === "imperial" ? "Imperial" : "Metric"}
+            onPress={async () => {
+              if (Platform.OS !== "web") {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              }
+              const newUnits = profile.units === "imperial" ? "metric" : "imperial";
+              await updateProfile({ ...profile, units: newUnits });
+            }}
           />
 
           <View style={styles.versionRow}>

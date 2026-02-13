@@ -6,12 +6,13 @@ import {
   Pressable,
   ScrollView,
   Text,
-  Modal,
-  useColorScheme,
   Platform,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Feather } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
+import Colors from "@/constants/colors";
+import { handleClientError } from "@/lib/error-handling";
 
 export type ErrorFallbackProps = {
   error: Error;
@@ -19,162 +20,95 @@ export type ErrorFallbackProps = {
 };
 
 export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === "dark";
   const insets = useSafeAreaInsets();
+  const [showDetails, setShowDetails] = useState(false);
 
-  const theme = {
-    background: isDark ? "#000000" : "#FFFFFF",
-    backgroundSecondary: isDark ? "#1C1C1E" : "#F2F2F7",
-    text: isDark ? "#FFFFFF" : "#000000",
-    textSecondary: isDark ? "rgba(255, 255, 255, 0.7)" : "rgba(0, 0, 0, 0.7)",
-    link: "#007AFF",
-    buttonText: "#FFFFFF",
+  const userFriendlyMessage = handleClientError(error);
+
+  const handleRetry = () => {
+    if (Platform.OS !== 'web') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
+    resetError();
   };
 
-  const [isModalVisible, setIsModalVisible] = useState(false);
-
-  const handleRestart = async () => {
+  const handleReload = async () => {
+    if (Platform.OS !== 'web') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    }
     try {
       await reloadAppAsync();
-    } catch (restartError) {
-      console.error("Failed to restart app:", restartError);
+    } catch (reloadError) {
+      console.error('Failed to reload app:', reloadError);
       resetError();
     }
   };
 
-  const formatErrorDetails = (): string => {
-    let details = `Error: ${error.message}\n\n`;
-    if (error.stack) {
-      details += `Stack Trace:\n${error.stack}`;
+  const handleToggleDetails = () => {
+    if (Platform.OS !== 'web') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
-    return details;
+    setShowDetails(!showDetails);
   };
 
-  const monoFont = Platform.select({
-    ios: "Menlo",
-    android: "monospace",
-    default: "monospace",
-  });
-
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>
-      {__DEV__ ? (
-        <Pressable
-          onPress={() => setIsModalVisible(true)}
-          accessibilityLabel="View error details"
-          accessibilityRole="button"
-          style={({ pressed }) => [
-            styles.topButton,
-            {
-              top: insets.top + 16,
-              backgroundColor: theme.backgroundSecondary,
-              opacity: pressed ? 0.8 : 1,
-            },
-          ]}
-        >
-          <Feather name="alert-circle" size={20} color={theme.text} />
-        </Pressable>
-      ) : null}
+    <View style={[styles.container, { paddingTop: insets.top + 20 }]}>
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.iconContainer}>
+          <Ionicons name="warning-outline" size={64} color={Colors.red} />
+        </View>
 
-      <View style={styles.content}>
-        <Text style={[styles.title, { color: theme.text }]}>
-          Something went wrong
-        </Text>
+        <Text style={styles.title}>Oops! Something went wrong</Text>
+        
+        <Text style={styles.message}>{userFriendlyMessage}</Text>
 
-        <Text style={[styles.message, { color: theme.textSecondary }]}>
-          Please reload the app to continue.
-        </Text>
+        <View style={styles.actionsContainer}>
+          <Pressable style={styles.retryButton} onPress={handleRetry}>
+            <Ionicons name="refresh-outline" size={20} color={Colors.white} />
+            <Text style={styles.retryButtonText}>Try Again</Text>
+          </Pressable>
 
-        <Pressable
-          onPress={handleRestart}
-          style={({ pressed }) => [
-            styles.button,
-            {
-              backgroundColor: theme.link,
-              opacity: pressed ? 0.9 : 1,
-              transform: [{ scale: pressed ? 0.98 : 1 }],
-            },
-          ]}
-        >
-          <Text style={[styles.buttonText, { color: theme.buttonText }]}>
-            Try Again
-          </Text>
-        </Pressable>
-      </View>
+          <Pressable style={styles.reloadButton} onPress={handleReload}>
+            <Ionicons name="reload-outline" size={20} color={Colors.white} />
+            <Text style={styles.reloadButtonText}>Reload App</Text>
+          </Pressable>
 
-      {__DEV__ ? (
-        <Modal
-          visible={isModalVisible}
-          animationType="slide"
-          transparent={true}
-          onRequestClose={() => setIsModalVisible(false)}
-        >
-          <View style={styles.modalOverlay}>
-            <View
-              style={[
-                styles.modalContainer,
-                { backgroundColor: theme.background },
-              ]}
-            >
-              <View
-                style={[
-                  styles.modalHeader,
-                  {
-                    borderBottomColor: isDark
-                      ? "rgba(255, 255, 255, 0.1)"
-                      : "rgba(0, 0, 0, 0.1)",
-                  },
-                ]}
-              >
-                <Text style={[styles.modalTitle, { color: theme.text }]}>
-                  Error Details
-                </Text>
-                <Pressable
-                  onPress={() => setIsModalVisible(false)}
-                  accessibilityLabel="Close error details"
-                  accessibilityRole="button"
-                  style={({ pressed }) => [
-                    styles.closeButton,
-                    { opacity: pressed ? 0.6 : 1 },
-                  ]}
-                >
-                  <Feather name="x" size={24} color={theme.text} />
-                </Pressable>
-              </View>
+          <Pressable 
+            style={styles.detailsButton} 
+            onPress={handleToggleDetails}
+          >
+            <Ionicons 
+              name={showDetails ? "chevron-up-outline" : "chevron-down-outline"} 
+              size={20} 
+              color={Colors.white} 
+            />
+            <Text style={styles.detailsButtonText}>
+              {showDetails ? 'Hide' : 'Show'} Details
+            </Text>
+          </Pressable>
+        </View>
 
-              <ScrollView
-                style={styles.modalScrollView}
-                contentContainerStyle={[
-                  styles.modalScrollContent,
-                  { paddingBottom: insets.bottom + 16 },
-                ]}
-                showsVerticalScrollIndicator
-              >
-                <View
-                  style={[
-                    styles.errorContainer,
-                    { backgroundColor: theme.backgroundSecondary },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.errorText,
-                      {
-                        color: theme.text,
-                        fontFamily: monoFont,
-                      },
-                    ]}
-                    selectable
-                  >
-                    {formatErrorDetails()}
-                  </Text>
-                </View>
-              </ScrollView>
-            </View>
+        {showDetails && (
+          <View style={styles.detailsContainer}>
+            <Text style={styles.detailsTitle}>Error Details</Text>
+            <Text style={styles.errorText}>{error.message}</Text>
+            {error.stack && (
+              <Text style={styles.stackTrace}>{error.stack}</Text>
+            )}
           </View>
-        </Modal>
-      ) : null}
+        )}
+
+        <View style={styles.helpContainer}>
+          <Text style={styles.helpTitle}>Need Help?</Text>
+          <Text style={styles.helpText}>
+            If this problem persists, please contact support or restart the app.
+          </Text>
+        </View>
+      </ScrollView>
     </View>
   );
 }
@@ -182,105 +116,133 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    width: "100%",
-    height: "100%",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 24,
+    backgroundColor: Colors.deepBlack,
   },
-  content: {
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 16,
-    width: "100%",
-    maxWidth: 600,
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: 24,
+    paddingBottom: 40,
+  },
+  iconContainer: {
+    alignItems: 'center',
+    marginTop: 60,
+    marginBottom: 24,
   },
   title: {
-    fontSize: 28,
-    fontWeight: "700",
-    textAlign: "center",
-    lineHeight: 40,
+    fontSize: 24,
+    fontFamily: 'Outfit_400Regular',
+    color: Colors.white,
+    textAlign: 'center',
+    marginBottom: 16,
   },
   message: {
     fontSize: 16,
-    textAlign: "center",
+    fontFamily: 'Outfit_300Light',
+    color: Colors.lightText,
+    textAlign: 'center',
     lineHeight: 24,
+    marginBottom: 32,
   },
-  topButton: {
-    position: "absolute",
-    right: 16,
-    width: 44,
-    height: 44,
-    borderRadius: 8,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 10,
+  actionsContainer: {
+    gap: 12,
+    marginBottom: 32,
   },
-  button: {
+  retryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.teal,
+    borderRadius: 12,
     paddingVertical: 16,
-    borderRadius: 8,
     paddingHorizontal: 24,
-    minWidth: 200,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    gap: 8,
   },
-  buttonText: {
-    fontWeight: "600",
-    textAlign: "center",
+  retryButtonText: {
     fontSize: 16,
+    fontFamily: 'Outfit_400Regular',
+    color: Colors.white,
   },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "flex-end",
+  reloadButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.gold,
+    borderRadius: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    gap: 8,
   },
-  modalContainer: {
-    width: "100%",
-    height: "90%",
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
+  reloadButtonText: {
+    fontSize: 16,
+    fontFamily: 'Outfit_400Regular',
+    color: Colors.white,
   },
-  modalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
+  detailsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderWidth: 0.5,
+    borderColor: Colors.border,
+    gap: 8,
   },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "600",
+  detailsButtonText: {
+    fontSize: 16,
+    fontFamily: 'Outfit_400Regular',
+    color: Colors.white,
   },
-  closeButton: {
-    width: 44,
-    height: 44,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  modalScrollView: {
-    flex: 1,
-  },
-  modalScrollContent: {
+  detailsContainer: {
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
     padding: 16,
+    borderWidth: 0.5,
+    borderColor: Colors.border,
+    marginBottom: 32,
   },
-  errorContainer: {
-    width: "100%",
-    borderRadius: 8,
-    overflow: "hidden",
-    padding: 16,
+  detailsTitle: {
+    fontSize: 14,
+    fontFamily: 'Outfit_400Regular',
+    color: Colors.white,
+    marginBottom: 12,
   },
   errorText: {
     fontSize: 12,
-    lineHeight: 18,
-    width: "100%",
+    fontFamily: 'Outfit_300Light',
+    color: Colors.lightText,
+    marginBottom: 8,
+  },
+  stackTrace: {
+    fontSize: 10,
+    fontFamily: 'monospace',
+    color: Colors.muted,
+    backgroundColor: Colors.charcoal,
+    padding: 8,
+    borderRadius: 6,
+    overflow: 'hidden',
+  },
+  helpContainer: {
+    alignItems: 'center',
+    paddingTop: 20,
+    borderTopWidth: 0.5,
+    borderTopColor: Colors.border,
+  },
+  helpTitle: {
+    fontSize: 16,
+    fontFamily: 'Outfit_400Regular',
+    color: Colors.white,
+    marginBottom: 8,
+  },
+  helpText: {
+    fontSize: 14,
+    fontFamily: 'Outfit_300Light',
+    color: Colors.lightText,
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });

@@ -13,6 +13,8 @@ interface BarChartProps {
   data: { day: string; value: number }[];
   color: string;
   goal?: number;
+  width?: number;
+  height?: number;
 }
 
 function AnimatedBar({

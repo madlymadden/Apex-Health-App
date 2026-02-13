@@ -22,6 +22,10 @@ function NativeTabLayout() {
         <Icon sf={{ default: "figure.stand", selected: "figure.stand" }} />
         <Label>Body</Label>
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="analytics">
+        <Icon sf={{ default: "chart.line.uptrend.xyaxis", selected: "chart.line.uptrend.xyaxis.fill" }} />
+        <Label>Analytics</Label>
+      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="profile">
         <Icon sf={{ default: "person", selected: "person.fill" }} />
         <Label>Profile</Label>
@@ -42,68 +46,85 @@ function ClassicTabLayout() {
         tabBarInactiveTintColor: Colors.muted,
         tabBarStyle: {
           position: "absolute" as const,
-          backgroundColor: isIOS ? "transparent" : Colors.pureBlack,
-          borderTopWidth: 0.5,
           borderTopColor: Colors.border,
-          elevation: 0,
-          ...(isWeb ? { height: 84 } : {}),
+          borderTopWidth: 0.5,
+          height: 90,
+          paddingBottom: 20,
+          paddingTop: 8,
+        },
+        tabBarItemStyle: {
+          paddingVertical: 4,
         },
         tabBarLabelStyle: {
           fontFamily: "Outfit_300Light",
-          fontSize: 9,
-          letterSpacing: 1.5,
-          textTransform: "uppercase" as const,
+          fontSize: 10,
+          letterSpacing: 0.5,
         },
-        tabBarBackground: () =>
-          isIOS ? (
-            <BlurView
-              intensity={90}
-              tint="dark"
-              style={StyleSheet.absoluteFill}
-            />
-          ) : isWeb ? (
-            <View
-              style={[
-                StyleSheet.absoluteFill,
-                { backgroundColor: Colors.pureBlack },
-              ]}
-            />
-          ) : null,
+        headerShown: false,
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
-          title: "DASHBOARD",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="pulse" size={size - 2} color={color} />
+          title: "Dashboard",
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name={focused ? "home" : "home-outline"}
+              size={24}
+              color={color}
+            />
           ),
         }}
       />
       <Tabs.Screen
         name="activity"
         options={{
-          title: "ACTIVITY",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="flame-outline" size={size - 2} color={color} />
+          title: "Activity",
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name={focused ? "fitness" : "fitness-outline"}
+              size={24}
+              color={color}
+            />
           ),
         }}
       />
       <Tabs.Screen
         name="body"
         options={{
-          title: "BODY",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="body-outline" size={size - 2} color={color} />
+          title: "Body",
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name={focused ? "person" : "person-outline"}
+              size={24}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="analytics"
+        options={{
+          title: "Analytics",
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name={focused ? "analytics" : "analytics-outline"}
+              size={24}
+              color={color}
+            />
           ),
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: "PROFILE",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person-outline" size={size - 2} color={color} />
+          title: "Profile",
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name={focused ? "person-circle" : "person-circle-outline"}
+              size={24}
+              color={color}
+            />
           ),
         }}
       />

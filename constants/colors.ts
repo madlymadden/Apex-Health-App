@@ -1,6 +1,7 @@
 const GOLD = "#D4AF37";
 const GOLD_LIGHT = "#E5C76B";
 const GOLD_DIM = "#8A7A3A";
+const YELLOW = "#FFD60A";
 const PURE_BLACK = "#000000";
 const DEEP_BLACK = "#0D0D0D";
 const CHARCOAL = "#1A1A1A";
@@ -28,6 +29,7 @@ export default {
   gold: GOLD,
   goldLight: GOLD_LIGHT,
   goldDim: GOLD_DIM,
+  yellow: YELLOW,
   pureBlack: PURE_BLACK,
   deepBlack: DEEP_BLACK,
   charcoal: CHARCOAL,

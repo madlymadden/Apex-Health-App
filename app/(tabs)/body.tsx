@@ -37,6 +37,7 @@ function BodyMetricRow({ metric }: { metric: BodyMetric }) {
         if (Platform.OS !== "web") {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         }
+        router.push({ pathname: "/body/[id]", params: { id: metric.label.toLowerCase() } });
       }}
     >
       <View style={styles.bodyRowLeft}>

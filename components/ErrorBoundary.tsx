@@ -1,9 +1,12 @@
 import React, { Component, ComponentType, PropsWithChildren } from "react";
 import { ErrorFallback, ErrorFallbackProps } from "@/components/ErrorFallback";
+import { logError } from "@/lib/error-handling";
 
 export type ErrorBoundaryProps = PropsWithChildren<{
   FallbackComponent?: ComponentType<ErrorFallbackProps>;
   onError?: (error: Error, stackTrace: string) => void;
+  context?: string;
+  userId?: string;
 }>;
 
 type ErrorBoundaryState = { error: Error | null };
@@ -19,36 +22,41 @@ export class ErrorBoundary extends Component<
 > {
   state: ErrorBoundaryState = { error: null };
 
-  static defaultProps: {
-    FallbackComponent: ComponentType<ErrorFallbackProps>;
-  } = {
-    FallbackComponent: ErrorFallback,
-  };
-
-  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+  static getDerivedStateFromError(error: Error): Partial<ErrorBoundaryState> {
     return { error };
   }
 
-  componentDidCatch(error: Error, info: { componentStack: string }): void {
-    if (typeof this.props.onError === "function") {
-      this.props.onError(error, info.componentStack);
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    // Enhanced error logging with context
+    logError(error, this.props.context || 'ErrorBoundary', this.props.userId);
+    
+    // Call custom error handler if provided
+    if (this.props.onError) {
+      this.props.onError(error, errorInfo.componentStack);
+    }
+
+    // In development, log full error info
+    if (__DEV__) {
+      console.error('ErrorBoundary caught an error:', error);
+      console.error('Component stack:', errorInfo.componentStack);
     }
   }
 
-  resetError = (): void => {
+  resetError = () => {
     this.setState({ error: null });
   };
 
   render() {
-    const { FallbackComponent } = this.props;
+    if (this.state.error) {
+      const FallbackComponent = this.props.FallbackComponent || ErrorFallback;
+      return (
+        <FallbackComponent 
+          error={this.state.error} 
+          resetError={this.resetError} 
+        />
+      );
+    }
 
-    return this.state.error && FallbackComponent ? (
-      <FallbackComponent
-        error={this.state.error}
-        resetError={this.resetError}
-      />
-    ) : (
-      this.props.children
-    );
+    return this.props.children;
   }
 }
