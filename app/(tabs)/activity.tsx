@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -10,11 +10,12 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { router } from "expo-router";
 import * as Haptics from "expo-haptics";
 import Animated, { FadeIn } from "react-native-reanimated";
 import Colors from "@/constants/colors";
+import { useHealth } from "@/lib/health-context";
 import {
-  generateWorkoutHistory,
   formatDuration,
   getRelativeDate,
   type WorkoutEntry,
@@ -38,6 +39,7 @@ function WorkoutRow({ workout }: { workout: WorkoutEntry }) {
         if (Platform.OS !== "web") {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         }
+        router.push({ pathname: "/workout/[id]", params: { id: workout.id } });
       }}
     >
       <View style={styles.workoutLeft}>
@@ -69,26 +71,32 @@ function WorkoutRow({ workout }: { workout: WorkoutEntry }) {
   );
 }
 
+function EmptyState() {
+  return (
+    <View style={styles.emptyState}>
+      <Ionicons name="barbell-outline" size={32} color={Colors.border} />
+      <Text style={styles.emptyTitle}>No Workouts Yet</Text>
+      <Text style={styles.emptySubtext}>
+        Tap the + button to log your first session
+      </Text>
+    </View>
+  );
+}
+
 export default function ActivityScreen() {
   const insets = useSafeAreaInsets();
-  const [workouts, setWorkouts] = useState<WorkoutEntry[]>([]);
+  const { workouts, refreshWorkouts } = useHealth();
   const [refreshing, setRefreshing] = useState(false);
   const webTopInset = Platform.OS === "web" ? 67 : 0;
 
-  useEffect(() => {
-    setWorkouts(generateWorkoutHistory());
-  }, []);
-
-  const onRefresh = useCallback(() => {
+  const onRefresh = useCallback(async () => {
     setRefreshing(true);
     if (Platform.OS !== "web") {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
-    setTimeout(() => {
-      setWorkouts(generateWorkoutHistory());
-      setRefreshing(false);
-    }, 800);
-  }, []);
+    await refreshWorkouts();
+    setRefreshing(false);
+  }, [refreshWorkouts]);
 
   const totalCalories = workouts.reduce((sum, w) => sum + w.calories, 0);
   const totalMinutes = workouts.reduce((sum, w) => sum + w.duration, 0);
@@ -97,6 +105,13 @@ export default function ActivityScreen() {
         workouts.reduce((sum, w) => sum + w.heartRateAvg, 0) / workouts.length
       )
     : 0;
+
+  const thisWeekWorkouts = workouts.filter((w) => {
+    const d = new Date(w.date);
+    const now = new Date();
+    const diffDays = Math.floor((now.getTime() - d.getTime()) / (1000 * 60 * 60 * 24));
+    return diffDays < 7;
+  });
 
   return (
     <View style={styles.container}>
@@ -119,7 +134,23 @@ export default function ActivityScreen() {
         }
       >
         <Animated.View entering={FadeIn.duration(800)}>
-          <Text style={styles.screenTitle}>Activity</Text>
+          <View style={styles.titleRow}>
+            <Text style={styles.screenTitle}>Activity</Text>
+            <Pressable
+              onPress={() => {
+                if (Platform.OS !== "web") {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                }
+                router.push("/add-workout");
+              }}
+              style={({ pressed }) => [
+                styles.addButton,
+                pressed && { opacity: 0.5 },
+              ]}
+            >
+              <Ionicons name="add" size={22} color={Colors.white} />
+            </Pressable>
+          </View>
 
           <View style={styles.summaryRow}>
             <View style={styles.summaryItem}>
@@ -144,21 +175,27 @@ export default function ActivityScreen() {
 
           <View style={styles.divider} />
 
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionLabel}>RECENT</Text>
-            <Text style={styles.sessionCount}>
-              {workouts.length} SESSIONS
-            </Text>
-          </View>
+          {workouts.length === 0 ? (
+            <EmptyState />
+          ) : (
+            <>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionLabel}>RECENT</Text>
+                <Text style={styles.sessionCount}>
+                  {thisWeekWorkouts.length} THIS WEEK
+                </Text>
+              </View>
 
-          {workouts.map((workout, index) => (
-            <React.Fragment key={workout.id}>
-              <WorkoutRow workout={workout} />
-              {index < workouts.length - 1 && (
-                <View style={styles.rowDivider} />
-              )}
-            </React.Fragment>
-          ))}
+              {workouts.map((workout, index) => (
+                <React.Fragment key={workout.id}>
+                  <WorkoutRow workout={workout} />
+                  {index < workouts.length - 1 && (
+                    <View style={styles.rowDivider} />
+                  )}
+                </React.Fragment>
+              ))}
+            </>
+          )}
         </Animated.View>
       </ScrollView>
     </View>
@@ -176,12 +213,23 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 24,
   },
+  titleRow: {
+    flexDirection: "row" as const,
+    justifyContent: "space-between" as const,
+    alignItems: "center" as const,
+    marginBottom: 36,
+  },
   screenTitle: {
     fontSize: 36,
     fontFamily: "Outfit_300Light",
     color: Colors.white,
     letterSpacing: -1,
-    marginBottom: 36,
+  },
+  addButton: {
+    width: 36,
+    height: 36,
+    alignItems: "center" as const,
+    justifyContent: "center" as const,
   },
   summaryRow: {
     flexDirection: "row" as const,
@@ -294,5 +342,23 @@ const styles = StyleSheet.create({
   rowDivider: {
     height: 0.5,
     backgroundColor: "rgba(255,255,255,0.06)",
+  },
+  emptyState: {
+    alignItems: "center" as const,
+    justifyContent: "center" as const,
+    paddingVertical: 64,
+    gap: 12,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontFamily: "Outfit_300Light",
+    color: Colors.lightText,
+    letterSpacing: -0.3,
+  },
+  emptySubtext: {
+    fontSize: 13,
+    fontFamily: "Outfit_300Light",
+    color: Colors.muted,
+    letterSpacing: 0.3,
   },
 });

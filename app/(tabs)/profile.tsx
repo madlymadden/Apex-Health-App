@@ -9,17 +9,20 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { router } from "expo-router";
 import * as Haptics from "expo-haptics";
 import Animated, { FadeIn } from "react-native-reanimated";
 import Colors from "@/constants/colors";
+import { useHealth } from "@/lib/health-context";
 
 interface SettingsRowProps {
   icon: string;
   label: string;
   value?: string;
+  onPress?: () => void;
 }
 
-function SettingsRow({ icon, label, value }: SettingsRowProps) {
+function SettingsRow({ icon, label, value, onPress }: SettingsRowProps) {
   return (
     <Pressable
       style={({ pressed }) => [
@@ -30,6 +33,7 @@ function SettingsRow({ icon, label, value }: SettingsRowProps) {
         if (Platform.OS !== "web") {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         }
+        onPress?.();
       }}
     >
       <View style={styles.settingsLeft}>
@@ -46,7 +50,12 @@ function SettingsRow({ icon, label, value }: SettingsRowProps) {
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
+  const { goals, profile, workouts } = useHealth();
   const webTopInset = Platform.OS === "web" ? 67 : 0;
+
+  const streak = Math.min(workouts.length, 42);
+  const totalHours = Math.round(workouts.reduce((s, w) => s + w.duration, 0) / 60);
+  const hoursDisplay = totalHours >= 1000 ? `${(totalHours / 1000).toFixed(1)}k` : totalHours.toString();
 
   return (
     <View style={styles.container}>
@@ -70,24 +79,26 @@ export default function ProfileScreen() {
                 <Ionicons name="person" size={28} color={Colors.muted} />
               </View>
               <View style={styles.profileInfo}>
-                <Text style={styles.userName}>Alex Morgan</Text>
-                <Text style={styles.memberSince}>Member since 2023</Text>
+                <Text style={styles.userName}>{profile.name}</Text>
+                <Text style={styles.memberSince}>
+                  Member since {profile.memberSince}
+                </Text>
               </View>
             </View>
 
             <View style={styles.statsRow}>
               <View style={styles.statItem}>
-                <Text style={styles.statValue}>247</Text>
+                <Text style={styles.statValue}>{workouts.length}</Text>
                 <Text style={styles.statLabel}>WORKOUTS</Text>
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
-                <Text style={styles.statValue}>38</Text>
+                <Text style={styles.statValue}>{streak}</Text>
                 <Text style={styles.statLabel}>STREAK</Text>
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
-                <Text style={styles.statValue}>1.2k</Text>
+                <Text style={styles.statValue}>{hoursDisplay}</Text>
                 <Text style={styles.statLabel}>HOURS</Text>
               </View>
             </View>
@@ -96,13 +107,33 @@ export default function ProfileScreen() {
           <View style={styles.divider} />
 
           <Text style={styles.sectionLabel}>GOALS</Text>
-          <SettingsRow icon="walk-outline" label="Daily Steps" value="10,000" />
+          <SettingsRow
+            icon="walk-outline"
+            label="Daily Steps"
+            value={goals.steps.toLocaleString()}
+            onPress={() => router.push("/edit-goals")}
+          />
           <View style={styles.rowDivider} />
-          <SettingsRow icon="flame-outline" label="Calorie Target" value="650 kcal" />
+          <SettingsRow
+            icon="flame-outline"
+            label="Calorie Target"
+            value={`${goals.calories} kcal`}
+            onPress={() => router.push("/edit-goals")}
+          />
           <View style={styles.rowDivider} />
-          <SettingsRow icon="timer-outline" label="Active Minutes" value="45 min" />
+          <SettingsRow
+            icon="timer-outline"
+            label="Active Minutes"
+            value={`${goals.activeMinutes} min`}
+            onPress={() => router.push("/edit-goals")}
+          />
           <View style={styles.rowDivider} />
-          <SettingsRow icon="fitness-outline" label="Weekly Workouts" value="5x" />
+          <SettingsRow
+            icon="fitness-outline"
+            label="Weekly Workouts"
+            value={`${goals.weeklyWorkouts}x`}
+            onPress={() => router.push("/edit-goals")}
+          />
 
           <View style={styles.sectionDivider} />
 
@@ -118,7 +149,11 @@ export default function ProfileScreen() {
           <View style={styles.rowDivider} />
           <SettingsRow icon="notifications-outline" label="Notifications" value="On" />
           <View style={styles.rowDivider} />
-          <SettingsRow icon="globe-outline" label="Units" value="Imperial" />
+          <SettingsRow
+            icon="globe-outline"
+            label="Units"
+            value={profile.units === "imperial" ? "Imperial" : "Metric"}
+          />
 
           <View style={styles.versionRow}>
             <Text style={styles.versionText}>VITALITY V1.0</Text>

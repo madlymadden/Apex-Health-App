@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -13,13 +13,10 @@ import * as Haptics from "expo-haptics";
 import Animated, { FadeIn } from "react-native-reanimated";
 import Colors from "@/constants/colors";
 import { MiniChart } from "@/components/MiniChart";
-import { generateBodyMetrics, type BodyMetric } from "@/lib/health-data";
+import { useHealth } from "@/lib/health-context";
+import { type BodyMetric } from "@/lib/health-data";
 
-function BodyMetricRow({
-  metric,
-}: {
-  metric: BodyMetric;
-}) {
+function BodyMetricRow({ metric }: { metric: BodyMetric }) {
   const isPositive =
     metric.label === "Weight" || metric.label === "Body Fat" || metric.label === "Resting HR"
       ? metric.trend === "down"
@@ -77,15 +74,11 @@ function BodyMetricRow({
 
 export default function BodyScreen() {
   const insets = useSafeAreaInsets();
-  const [metrics, setMetrics] = useState<BodyMetric[]>([]);
+  const { bodyMetrics } = useHealth();
   const webTopInset = Platform.OS === "web" ? 67 : 0;
 
-  useEffect(() => {
-    setMetrics(generateBodyMetrics());
-  }, []);
-
-  const weight = metrics.find((m) => m.label === "Weight");
-  const bodyFat = metrics.find((m) => m.label === "Body Fat");
+  const weight = bodyMetrics.find((m) => m.label === "Weight");
+  const bodyFat = bodyMetrics.find((m) => m.label === "Body Fat");
 
   return (
     <View style={styles.container}>
@@ -148,10 +141,10 @@ export default function BodyScreen() {
 
           <Text style={styles.sectionLabel}>ALL METRICS</Text>
 
-          {metrics.map((metric, index) => (
+          {bodyMetrics.map((metric, index) => (
             <React.Fragment key={metric.label}>
               <BodyMetricRow metric={metric} />
-              {index < metrics.length - 1 && (
+              {index < bodyMetrics.length - 1 && (
                 <View style={styles.rowDivider} />
               )}
             </React.Fragment>
