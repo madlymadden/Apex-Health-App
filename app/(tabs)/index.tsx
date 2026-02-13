@@ -9,12 +9,11 @@ import {
   RefreshControl,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import * as Haptics from "expo-haptics";
 import Animated, {
-  FadeInDown,
+  FadeIn,
   useSharedValue,
   useAnimatedStyle,
   withRepeat,
@@ -34,7 +33,7 @@ function PulsingDot({ color }: { color: string }) {
 
   useEffect(() => {
     opacity.value = withRepeat(
-      withTiming(0.3, { duration: 1500, easing: Easing.inOut(Easing.ease) }),
+      withTiming(0.2, { duration: 2000, easing: Easing.inOut(Easing.ease) }),
       -1,
       true
     );
@@ -46,14 +45,51 @@ function PulsingDot({ color }: { color: string }) {
 
   return (
     <Animated.View
-      style={[{ width: 6, height: 6, borderRadius: 3, backgroundColor: color }, style]}
+      style={[
+        { width: 5, height: 5, borderRadius: 2.5, backgroundColor: color },
+        style,
+      ]}
     />
   );
 }
 
-function MetricCard({ metric, index }: { metric: HealthMetric; index: number }) {
+function HeroMetric({ metric }: { metric: HealthMetric }) {
   const progress = Math.min(metric.value / metric.goal, 1);
 
+  return (
+    <Pressable
+      onPress={() => {
+        if (Platform.OS !== "web") {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        }
+        router.push({ pathname: "/metric/[id]", params: { id: metric.id } });
+      }}
+      style={({ pressed }) => [
+        styles.heroMetric,
+        pressed && { opacity: 0.6 },
+      ]}
+    >
+      <MetricRing
+        progress={progress}
+        size={56}
+        strokeWidth={3}
+        color={metric.color}
+        bgColor="rgba(255,255,255,0.04)"
+      />
+      <View style={styles.heroMetricOverlay}>
+        <Text style={[styles.heroMetricValue, { color: metric.color }]}>
+          {Math.round(progress * 100)}
+        </Text>
+      </View>
+    </Pressable>
+  );
+}
+
+function MetricRow({
+  metric,
+}: {
+  metric: HealthMetric;
+}) {
   const handlePress = () => {
     if (Platform.OS !== "web") {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -62,72 +98,46 @@ function MetricCard({ metric, index }: { metric: HealthMetric; index: number }) 
   };
 
   return (
-    <Animated.View entering={FadeInDown.delay(index * 100).duration(600)}>
-      <Pressable
-        onPress={handlePress}
-        style={({ pressed }) => [
-          styles.metricCard,
-          pressed && { opacity: 0.8, transform: [{ scale: 0.97 }] },
-        ]}
-      >
-        <View style={styles.metricHeader}>
-          <View style={styles.metricLabelRow}>
-            <Ionicons
-              name={metric.icon as any}
-              size={14}
-              color={metric.color}
-            />
-            <Text style={styles.metricLabel}>{metric.label}</Text>
-          </View>
-          {metric.id === "heart" && <PulsingDot color={metric.color} />}
+    <Pressable
+      onPress={handlePress}
+      style={({ pressed }) => [
+        styles.metricRow,
+        pressed && { opacity: 0.5 },
+      ]}
+    >
+      <View style={styles.metricRowLeft}>
+        <Text style={styles.metricRowLabel}>{metric.label.toUpperCase()}</Text>
+        <View style={styles.metricRowValueRow}>
+          <Text style={styles.metricRowValue}>
+            {metric.id === "steps"
+              ? formatNumber(metric.value)
+              : metric.value.toString()}
+          </Text>
+          {metric.unit ? (
+            <Text style={styles.metricRowUnit}>{metric.unit}</Text>
+          ) : null}
         </View>
+      </View>
 
-        <View style={styles.metricCenter}>
-          <MetricRing
-            progress={progress}
-            size={80}
-            strokeWidth={6}
-            color={metric.color}
+      <View style={styles.metricRowRight}>
+        <View style={styles.trendContainer}>
+          <Ionicons
+            name={metric.trend >= 0 ? "arrow-up" : "arrow-down"}
+            size={10}
+            color={metric.trend >= 0 ? Colors.green : Colors.red}
           />
-          <View style={styles.metricValueOverlay}>
-            <Text style={[styles.metricValue, { color: metric.color }]}>
-              {metric.id === "steps"
-                ? formatNumber(metric.value)
-                : metric.value}
-            </Text>
-            {metric.unit ? (
-              <Text style={styles.metricUnit}>{metric.unit}</Text>
-            ) : null}
-          </View>
-        </View>
-
-        <View style={styles.metricFooter}>
-          <View style={styles.trendRow}>
-            <Ionicons
-              name={metric.trend >= 0 ? "trending-up" : "trending-down"}
-              size={12}
-              color={metric.trend >= 0 ? Colors.greenAccent : Colors.redAccent}
-            />
-            <Text
-              style={[
-                styles.trendText,
-                {
-                  color:
-                    metric.trend >= 0 ? Colors.greenAccent : Colors.redAccent,
-                },
-              ]}
-            >
-              {Math.abs(metric.trend)}%
-            </Text>
-          </View>
-          <Text style={styles.goalText}>
-            {metric.id === "heart"
-              ? "resting"
-              : `/ ${formatNumber(metric.goal)}`}
+          <Text
+            style={[
+              styles.trendText,
+              { color: metric.trend >= 0 ? Colors.green : Colors.red },
+            ]}
+          >
+            {Math.abs(metric.trend)}%
           </Text>
         </View>
-      </Pressable>
-    </Animated.View>
+        <Ionicons name="chevron-forward" size={16} color={Colors.muted} />
+      </View>
+    </Pressable>
   );
 }
 
@@ -152,18 +162,24 @@ export default function DashboardScreen() {
     }, 800);
   }, []);
 
-  const greeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return "Good Morning";
-    if (hour < 17) return "Good Afternoon";
-    return "Good Evening";
-  };
+  const dateString = new Date()
+    .toLocaleDateString("en-US", {
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+    })
+    .toUpperCase();
 
-  const dateString = new Date().toLocaleDateString("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  });
+  const overallProgress = metrics.length
+    ? Math.round(
+        (metrics.reduce(
+          (sum, m) => sum + Math.min(m.value / m.goal, 1),
+          0
+        ) /
+          metrics.length) *
+          100
+      )
+    : 0;
 
   return (
     <View style={styles.container}>
@@ -172,8 +188,8 @@ export default function DashboardScreen() {
         contentContainerStyle={[
           styles.scrollContent,
           {
-            paddingTop: insets.top + webTopInset + 16,
-            paddingBottom: 100,
+            paddingTop: insets.top + webTopInset + 20,
+            paddingBottom: 120,
           },
         ]}
         showsVerticalScrollIndicator={false}
@@ -181,69 +197,64 @@ export default function DashboardScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor={Colors.gold}
+            tintColor={Colors.white}
           />
         }
       >
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.greeting}>{greeting()}</Text>
-            <Text style={styles.dateText}>{dateString}</Text>
+        <Animated.View entering={FadeIn.duration(800)}>
+          <View style={styles.header}>
+            <View style={styles.headerLeft}>
+              <View style={styles.liveIndicator}>
+                <PulsingDot color={Colors.green} />
+                <Text style={styles.liveLabel}>LIVE</Text>
+              </View>
+              <Text style={styles.dateText}>{dateString}</Text>
+            </View>
+            <Pressable
+              style={styles.notifButton}
+              onPress={() => {
+                if (Platform.OS !== "web") {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                }
+              }}
+            >
+              <Ionicons name="notifications-outline" size={20} color={Colors.white} />
+            </Pressable>
           </View>
-          <View style={styles.liveBadge}>
-            <PulsingDot color={Colors.greenAccent} />
-            <Text style={styles.liveText}>LIVE</Text>
-          </View>
-        </View>
 
-        <View style={styles.summaryCard}>
-          <LinearGradient
-            colors={["rgba(201,169,110,0.15)", "rgba(201,169,110,0.02)"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={StyleSheet.absoluteFill}
-          />
-          <Text style={styles.summaryTitle}>Today's Progress</Text>
-          <View style={styles.summaryRow}>
-            {metrics.map((m) => {
-              const pct = Math.min(Math.round((m.value / m.goal) * 100), 100);
-              return (
-                <View key={m.id} style={styles.summaryItem}>
-                  <MetricRing
-                    progress={m.value / m.goal}
-                    size={44}
-                    strokeWidth={4}
-                    color={m.color}
-                  />
-                  <Text style={styles.summaryPct}>{pct}%</Text>
-                </View>
-              );
-            })}
+          <View style={styles.heroSection}>
+            <Text style={styles.heroNumber}>{overallProgress}</Text>
+            <Text style={styles.heroLabel}>DAILY SCORE</Text>
+            <View style={styles.heroDivider} />
+            <View style={styles.heroRingsRow}>
+              {metrics.map((m) => (
+                <HeroMetric key={m.id} metric={m} />
+              ))}
+            </View>
           </View>
-        </View>
 
-        <View style={styles.metricsGrid}>
-          {metrics.map((metric, index) => (
-            <MetricCard key={metric.id} metric={metric} index={index} />
+          <View style={styles.divider} />
+
+          <Text style={styles.sectionLabel}>TODAY'S METRICS</Text>
+
+          {metrics.map((metric) => (
+            <React.Fragment key={metric.id}>
+              <MetricRow metric={metric} />
+              <View style={styles.rowDivider} />
+            </React.Fragment>
           ))}
-        </View>
 
-        <View style={styles.insightCard}>
-          <LinearGradient
-            colors={["rgba(90,200,250,0.1)", "rgba(90,200,250,0.02)"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={StyleSheet.absoluteFill}
-          />
-          <Ionicons name="sparkles" size={18} color={Colors.blueAccent} />
-          <View style={styles.insightContent}>
-            <Text style={styles.insightTitle}>Daily Insight</Text>
+          <View style={styles.insightSection}>
+            <View style={styles.insightHeader}>
+              <View style={styles.insightDot} />
+              <Text style={styles.insightLabel}>INSIGHT</Text>
+            </View>
             <Text style={styles.insightText}>
-              Your resting heart rate has improved 4% this week. Keep up the
-              consistent training.
+              Your resting heart rate has improved 4% this week. Consistent
+              training is showing measurable cardiovascular gains.
             </Text>
           </View>
-        </View>
+        </Animated.View>
       </ScrollView>
     </View>
   );
@@ -258,172 +269,173 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
   },
   header: {
     flexDirection: "row" as const,
     justifyContent: "space-between" as const,
     alignItems: "flex-start" as const,
-    marginBottom: 24,
+    marginBottom: 40,
   },
-  greeting: {
-    fontSize: 28,
-    fontFamily: "Outfit_700Bold",
-    color: Colors.white,
-    letterSpacing: -0.5,
+  headerLeft: {
+    gap: 8,
+  },
+  liveIndicator: {
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    gap: 6,
+  },
+  liveLabel: {
+    fontSize: 9,
+    fontFamily: "Outfit_300Light",
+    color: Colors.green,
+    letterSpacing: 3,
   },
   dateText: {
-    fontSize: 14,
-    fontFamily: "Outfit_400Regular",
-    color: Colors.lightGray,
-    marginTop: 4,
-    letterSpacing: 0.3,
-  },
-  liveBadge: {
-    flexDirection: "row" as const,
-    alignItems: "center" as const,
-    gap: 6,
-    backgroundColor: "rgba(76, 217, 100, 0.1)",
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 12,
-    marginTop: 4,
-  },
-  liveText: {
     fontSize: 10,
-    fontFamily: "Outfit_700Bold",
-    color: Colors.greenAccent,
-    letterSpacing: 1.5,
+    fontFamily: "Outfit_300Light",
+    color: Colors.muted,
+    letterSpacing: 2,
   },
-  summaryCard: {
-    backgroundColor: Colors.charcoal,
-    borderRadius: 20,
-    padding: 20,
-    marginBottom: 20,
-    overflow: "hidden" as const,
-    borderWidth: 1,
-    borderColor: "rgba(201,169,110,0.15)",
-  },
-  summaryTitle: {
-    fontSize: 13,
-    fontFamily: "Outfit_600SemiBold",
-    color: Colors.gold,
-    letterSpacing: 1.5,
-    textTransform: "uppercase" as const,
-    marginBottom: 16,
-  },
-  summaryRow: {
-    flexDirection: "row" as const,
-    justifyContent: "space-around" as const,
-    alignItems: "center" as const,
-  },
-  summaryItem: {
-    alignItems: "center" as const,
-    gap: 6,
-  },
-  summaryPct: {
-    fontSize: 12,
-    fontFamily: "Outfit_600SemiBold",
-    color: Colors.offWhite,
-  },
-  metricsGrid: {
-    flexDirection: "row" as const,
-    flexWrap: "wrap" as const,
-    gap: 12,
-    marginBottom: 20,
-  },
-  metricCard: {
-    width: "48%" as any,
-    flexBasis: "47%" as any,
-    flexGrow: 1,
-    backgroundColor: Colors.charcoal,
-    borderRadius: 20,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.04)",
-  },
-  metricHeader: {
-    flexDirection: "row" as const,
-    justifyContent: "space-between" as const,
-    alignItems: "center" as const,
-    marginBottom: 12,
-  },
-  metricLabelRow: {
-    flexDirection: "row" as const,
-    alignItems: "center" as const,
-    gap: 6,
-  },
-  metricLabel: {
-    fontSize: 12,
-    fontFamily: "Outfit_500Medium",
-    color: Colors.lightGray,
-    letterSpacing: 0.5,
-    textTransform: "uppercase" as const,
-  },
-  metricCenter: {
+  notifButton: {
+    width: 36,
+    height: 36,
     alignItems: "center" as const,
     justifyContent: "center" as const,
-    marginBottom: 12,
   },
-  metricValueOverlay: {
+  heroSection: {
+    alignItems: "center" as const,
+    marginBottom: 40,
+  },
+  heroNumber: {
+    fontSize: 96,
+    fontFamily: "Outfit_300Light",
+    color: Colors.white,
+    letterSpacing: -4,
+    lineHeight: 96,
+  },
+  heroLabel: {
+    fontSize: 10,
+    fontFamily: "Outfit_300Light",
+    color: Colors.muted,
+    letterSpacing: 4,
+    marginTop: 8,
+  },
+  heroDivider: {
+    width: 40,
+    height: 0.5,
+    backgroundColor: Colors.border,
+    marginVertical: 28,
+  },
+  heroRingsRow: {
+    flexDirection: "row" as const,
+    justifyContent: "center" as const,
+    gap: 24,
+  },
+  heroMetric: {
+    alignItems: "center" as const,
+    justifyContent: "center" as const,
+  },
+  heroMetricOverlay: {
     position: "absolute" as const,
     alignItems: "center" as const,
+    justifyContent: "center" as const,
   },
-  metricValue: {
-    fontSize: 22,
-    fontFamily: "Outfit_700Bold",
+  heroMetricValue: {
+    fontSize: 14,
+    fontFamily: "Outfit_400Regular",
     letterSpacing: -0.5,
   },
-  metricUnit: {
-    fontSize: 10,
-    fontFamily: "Outfit_400Regular",
-    color: Colors.lightGray,
-    marginTop: -2,
+  divider: {
+    height: 0.5,
+    backgroundColor: Colors.border,
+    marginBottom: 28,
   },
-  metricFooter: {
+  sectionLabel: {
+    fontSize: 10,
+    fontFamily: "Outfit_300Light",
+    color: Colors.muted,
+    letterSpacing: 3,
+    marginBottom: 20,
+  },
+  metricRow: {
     flexDirection: "row" as const,
     justifyContent: "space-between" as const,
     alignItems: "center" as const,
+    paddingVertical: 18,
   },
-  trendRow: {
+  metricRowLeft: {
+    gap: 4,
+  },
+  metricRowLabel: {
+    fontSize: 10,
+    fontFamily: "Outfit_300Light",
+    color: Colors.muted,
+    letterSpacing: 2,
+  },
+  metricRowValueRow: {
+    flexDirection: "row" as const,
+    alignItems: "baseline" as const,
+    gap: 4,
+  },
+  metricRowValue: {
+    fontSize: 28,
+    fontFamily: "Outfit_300Light",
+    color: Colors.white,
+    letterSpacing: -1,
+  },
+  metricRowUnit: {
+    fontSize: 12,
+    fontFamily: "Outfit_300Light",
+    color: Colors.muted,
+  },
+  metricRowRight: {
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    gap: 12,
+  },
+  trendContainer: {
     flexDirection: "row" as const,
     alignItems: "center" as const,
     gap: 3,
   },
   trendText: {
     fontSize: 11,
-    fontFamily: "Outfit_600SemiBold",
-  },
-  goalText: {
-    fontSize: 11,
     fontFamily: "Outfit_400Regular",
-    color: Colors.lightGray,
   },
-  insightCard: {
-    backgroundColor: Colors.charcoal,
-    borderRadius: 20,
-    padding: 20,
+  rowDivider: {
+    height: 0.5,
+    backgroundColor: "rgba(255,255,255,0.06)",
+  },
+  insightSection: {
+    marginTop: 36,
+    borderTopWidth: 0.5,
+    borderTopColor: Colors.border,
+    paddingTop: 24,
+  },
+  insightHeader: {
     flexDirection: "row" as const,
-    alignItems: "flex-start" as const,
-    gap: 14,
-    overflow: "hidden" as const,
-    borderWidth: 1,
-    borderColor: "rgba(90,200,250,0.1)",
+    alignItems: "center" as const,
+    gap: 8,
+    marginBottom: 12,
   },
-  insightContent: {
-    flex: 1,
+  insightDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: Colors.teal,
   },
-  insightTitle: {
-    fontSize: 13,
-    fontFamily: "Outfit_600SemiBold",
-    color: Colors.blueAccent,
-    letterSpacing: 0.5,
-    marginBottom: 4,
+  insightLabel: {
+    fontSize: 10,
+    fontFamily: "Outfit_300Light",
+    color: Colors.teal,
+    letterSpacing: 3,
   },
   insightText: {
-    fontSize: 14,
-    fontFamily: "Outfit_400Regular",
-    color: Colors.offWhite,
-    lineHeight: 20,
+    fontSize: 15,
+    fontFamily: "Outfit_300Light",
+    color: Colors.lightText,
+    lineHeight: 24,
+    letterSpacing: 0.2,
   },
 });

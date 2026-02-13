@@ -8,11 +8,10 @@ import {
   Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLocalSearchParams, router } from "expo-router";
 import * as Haptics from "expo-haptics";
-import Animated, { FadeInDown, FadeIn } from "react-native-reanimated";
+import Animated, { FadeIn } from "react-native-reanimated";
 import Colors from "@/constants/colors";
 import { MetricRing } from "@/components/MetricRing";
 import { BarChart } from "@/components/BarChart";
@@ -41,18 +40,24 @@ export default function MetricDetailScreen() {
 
   if (!metric) {
     return (
-      <View style={[styles.container, { paddingTop: insets.top + webTopInset }]}>
-        <Text style={styles.loadingText}>Loading...</Text>
-      </View>
+      <View
+        style={[styles.container, { paddingTop: insets.top + webTopInset }]}
+      />
     );
   }
 
   const progress = Math.min(metric.value / metric.goal, 1);
   const avgValue = weeklyData.length
-    ? Math.round(weeklyData.reduce((s, d) => s + d.value, 0) / weeklyData.length)
+    ? Math.round(
+        weeklyData.reduce((s, d) => s + d.value, 0) / weeklyData.length
+      )
     : 0;
-  const maxValue = weeklyData.length ? Math.max(...weeklyData.map((d) => d.value)) : 0;
-  const minValue = weeklyData.length ? Math.min(...weeklyData.map((d) => d.value)) : 0;
+  const maxValue = weeklyData.length
+    ? Math.max(...weeklyData.map((d) => d.value))
+    : 0;
+  const minValue = weeklyData.length
+    ? Math.min(...weeklyData.map((d) => d.value))
+    : 0;
 
   return (
     <View style={styles.container}>
@@ -66,160 +71,154 @@ export default function MetricDetailScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.header}>
-          <Pressable
-            onPress={() => {
-              if (Platform.OS !== "web") {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              }
-              router.back();
-            }}
-            style={styles.backButton}
-          >
-            <Ionicons name="chevron-down" size={24} color={Colors.white} />
-          </Pressable>
-          <Text style={styles.headerTitle}>{metric.label}</Text>
-          <View style={{ width: 36 }} />
-        </View>
-
-        <Animated.View entering={FadeIn.duration(600)} style={styles.heroSection}>
-          <LinearGradient
-            colors={[`${metric.color}20`, `${metric.color}05`]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={StyleSheet.absoluteFill}
-          />
-          <MetricRing
-            progress={progress}
-            size={160}
-            strokeWidth={10}
-            color={metric.color}
-          />
-          <View style={styles.heroOverlay}>
-            <Text style={[styles.heroValue, { color: metric.color }]}>
-              {metric.id === "steps" ? formatNumber(metric.value) : metric.value}
+        <Animated.View entering={FadeIn.duration(600)}>
+          <View style={styles.header}>
+            <Pressable
+              onPress={() => {
+                if (Platform.OS !== "web") {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                }
+                router.back();
+              }}
+              style={styles.backButton}
+            >
+              <Ionicons name="chevron-down" size={22} color={Colors.white} />
+            </Pressable>
+            <Text style={styles.headerTitle}>
+              {metric.label.toUpperCase()}
             </Text>
-            {metric.unit ? (
-              <Text style={styles.heroUnit}>{metric.unit}</Text>
-            ) : null}
+            <View style={{ width: 32 }} />
           </View>
 
-          <View style={styles.heroFooter}>
+          <View style={styles.heroSection}>
+            <MetricRing
+              progress={progress}
+              size={180}
+              strokeWidth={4}
+              color={metric.color}
+              bgColor="rgba(255,255,255,0.03)"
+            />
+            <View style={styles.heroOverlay}>
+              <Text style={[styles.heroValue, { color: Colors.white }]}>
+                {metric.id === "steps"
+                  ? formatNumber(metric.value)
+                  : metric.value}
+              </Text>
+              {metric.unit ? (
+                <Text style={styles.heroUnit}>{metric.unit}</Text>
+              ) : null}
+            </View>
+          </View>
+
+          <View style={styles.heroMeta}>
             <View style={styles.trendPill}>
               <Ionicons
-                name={metric.trend >= 0 ? "trending-up" : "trending-down"}
-                size={14}
-                color={metric.trend >= 0 ? Colors.greenAccent : Colors.redAccent}
+                name={metric.trend >= 0 ? "arrow-up" : "arrow-down"}
+                size={11}
+                color={
+                  metric.trend >= 0 ? Colors.green : Colors.red
+                }
               />
               <Text
                 style={[
-                  styles.trendPillText,
+                  styles.trendText,
                   {
                     color:
-                      metric.trend >= 0 ? Colors.greenAccent : Colors.redAccent,
+                      metric.trend >= 0 ? Colors.green : Colors.red,
                   },
                 ]}
               >
                 {Math.abs(metric.trend)}% vs last week
               </Text>
             </View>
-            <Text style={styles.goalSubtext}>
+            <Text style={styles.goalText}>
               {metric.id === "heart"
                 ? "Resting average"
                 : `Goal: ${formatNumber(metric.goal)} ${metric.unit}`}
             </Text>
           </View>
-        </Animated.View>
 
-        <Animated.View
-          entering={FadeInDown.delay(200).duration(600)}
-          style={styles.chartSection}
-        >
-          <View style={styles.chartHeader}>
-            <Text style={styles.chartTitle}>Weekly Overview</Text>
-            <View style={styles.timeToggle}>
-              {(["week", "month"] as const).map((range) => (
-                <Pressable
-                  key={range}
-                  onPress={() => {
-                    setTimeRange(range);
-                    if (Platform.OS !== "web") {
-                      Haptics.selectionAsync();
-                    }
-                    if (id) setWeeklyData(generateWeeklyData(id));
-                  }}
-                  style={[
-                    styles.timeButton,
-                    timeRange === range && styles.timeButtonActive,
-                  ]}
-                >
-                  <Text
+          <View style={styles.divider} />
+
+          <View style={styles.chartSection}>
+            <View style={styles.chartHeader}>
+              <Text style={styles.chartLabel}>WEEKLY OVERVIEW</Text>
+              <View style={styles.timeToggle}>
+                {(["week", "month"] as const).map((range) => (
+                  <Pressable
+                    key={range}
+                    onPress={() => {
+                      setTimeRange(range);
+                      if (Platform.OS !== "web") {
+                        Haptics.selectionAsync();
+                      }
+                      if (id) setWeeklyData(generateWeeklyData(id));
+                    }}
                     style={[
-                      styles.timeButtonText,
-                      timeRange === range && styles.timeButtonTextActive,
+                      styles.timeButton,
+                      timeRange === range && styles.timeButtonActive,
                     ]}
                   >
-                    {range === "week" ? "7D" : "30D"}
-                  </Text>
-                </Pressable>
-              ))}
+                    <Text
+                      style={[
+                        styles.timeButtonText,
+                        timeRange === range && styles.timeButtonTextActive,
+                      ]}
+                    >
+                      {range === "week" ? "7D" : "30D"}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+
+            <BarChart
+              data={weeklyData}
+              color={metric.color}
+              goal={metric.id !== "heart" ? metric.goal : undefined}
+            />
+          </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.statsRow}>
+            <View style={styles.statItem}>
+              <Text style={styles.statLabel}>AVERAGE</Text>
+              <Text style={styles.statValue}>
+                {metric.id === "steps" ? formatNumber(avgValue) : avgValue}
+              </Text>
+            </View>
+            <View style={styles.statsDivider} />
+            <View style={styles.statItem}>
+              <Text style={styles.statLabel}>BEST</Text>
+              <Text style={[styles.statValue, { color: Colors.green }]}>
+                {metric.id === "steps" ? formatNumber(maxValue) : maxValue}
+              </Text>
+            </View>
+            <View style={styles.statsDivider} />
+            <View style={styles.statItem}>
+              <Text style={styles.statLabel}>LOWEST</Text>
+              <Text style={styles.statValue}>
+                {metric.id === "steps" ? formatNumber(minValue) : minValue}
+              </Text>
             </View>
           </View>
 
-          <BarChart
-            data={weeklyData}
-            color={metric.color}
-            goal={metric.id !== "heart" ? metric.goal : undefined}
-          />
-        </Animated.View>
+          <View style={styles.divider} />
 
-        <Animated.View
-          entering={FadeInDown.delay(400).duration(600)}
-          style={styles.statsGrid}
-        >
-          <View style={styles.statItem}>
-            <Text style={styles.statItemLabel}>Average</Text>
-            <Text style={[styles.statItemValue, { color: metric.color }]}>
-              {metric.id === "steps" ? formatNumber(avgValue) : avgValue}
-            </Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statItemLabel}>Best</Text>
-            <Text style={[styles.statItemValue, { color: Colors.greenAccent }]}>
-              {metric.id === "steps" ? formatNumber(maxValue) : maxValue}
-            </Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statItemLabel}>Lowest</Text>
-            <Text style={[styles.statItemValue, { color: Colors.lightGray }]}>
-              {metric.id === "steps" ? formatNumber(minValue) : minValue}
-            </Text>
-          </View>
-        </Animated.View>
-
-        <Animated.View
-          entering={FadeInDown.delay(500).duration(600)}
-          style={styles.insightSection}
-        >
-          <LinearGradient
-            colors={[`${metric.color}12`, `${metric.color}03`]}
-            style={StyleSheet.absoluteFill}
-          />
-          <Ionicons name="analytics" size={20} color={metric.color} />
-          <View style={styles.insightContent}>
-            <Text style={[styles.insightTitle, { color: metric.color }]}>
-              Insight
-            </Text>
+          <View style={styles.insightSection}>
+            <View style={styles.insightHeader}>
+              <View style={styles.insightDot} />
+              <Text style={styles.insightLabel}>INSIGHT</Text>
+            </View>
             <Text style={styles.insightText}>
               {metric.id === "steps"
                 ? "You're most active on weekdays, averaging 20% more steps than weekends. Try a longer weekend walk to balance your activity."
                 : metric.id === "calories"
                 ? "Your calorie burn peaks mid-week with your strength training sessions. Maintain this pattern for consistent results."
                 : metric.id === "heart"
-                ? "Your resting heart rate has been trending downward, indicating improved cardiovascular fitness. Great progress."
-                : "You've been hitting your active minutes goal consistently. Consider increasing your target to 60 minutes for the next challenge."}
+                ? "Your resting heart rate has been trending downward, indicating improved cardiovascular fitness."
+                : "You've been hitting your active minutes goal consistently. Consider increasing your target for the next challenge."}
             </Text>
           </View>
         </Animated.View>
@@ -234,183 +233,159 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.deepBlack,
   },
   scrollContent: {
-    paddingHorizontal: 20,
-  },
-  loadingText: {
-    color: Colors.lightGray,
-    fontFamily: "Outfit_400Regular",
-    textAlign: "center" as const,
-    marginTop: 100,
+    paddingHorizontal: 24,
   },
   header: {
     flexDirection: "row" as const,
     justifyContent: "space-between" as const,
     alignItems: "center" as const,
-    marginBottom: 20,
+    marginBottom: 32,
   },
   backButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: Colors.charcoal,
+    width: 32,
+    height: 32,
     alignItems: "center" as const,
     justifyContent: "center" as const,
   },
   headerTitle: {
-    fontSize: 18,
-    fontFamily: "Outfit_600SemiBold",
-    color: Colors.white,
-    letterSpacing: 0.5,
+    fontSize: 10,
+    fontFamily: "Outfit_300Light",
+    color: Colors.muted,
+    letterSpacing: 3,
   },
   heroSection: {
-    backgroundColor: Colors.charcoal,
-    borderRadius: 24,
-    padding: 28,
     alignItems: "center" as const,
-    marginBottom: 16,
-    overflow: "hidden" as const,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.04)",
+    justifyContent: "center" as const,
+    marginBottom: 24,
   },
   heroOverlay: {
     position: "absolute" as const,
-    top: 28,
-    left: 0,
-    right: 0,
-    height: 160,
     alignItems: "center" as const,
     justifyContent: "center" as const,
   },
   heroValue: {
-    fontSize: 42,
-    fontFamily: "Outfit_700Bold",
-    letterSpacing: -1,
+    fontSize: 48,
+    fontFamily: "Outfit_300Light",
+    letterSpacing: -2,
   },
   heroUnit: {
-    fontSize: 14,
-    fontFamily: "Outfit_400Regular",
-    color: Colors.lightGray,
+    fontSize: 13,
+    fontFamily: "Outfit_300Light",
+    color: Colors.muted,
     marginTop: -2,
+    letterSpacing: 1,
   },
-  heroFooter: {
+  heroMeta: {
     alignItems: "center" as const,
-    gap: 6,
-    marginTop: 20,
+    gap: 8,
+    marginBottom: 32,
   },
   trendPill: {
     flexDirection: "row" as const,
     alignItems: "center" as const,
-    gap: 6,
-    backgroundColor: "rgba(255,255,255,0.05)",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
+    gap: 5,
   },
-  trendPillText: {
+  trendText: {
     fontSize: 12,
-    fontFamily: "Outfit_500Medium",
+    fontFamily: "Outfit_300Light",
+    letterSpacing: 0.5,
   },
-  goalSubtext: {
-    fontSize: 13,
-    fontFamily: "Outfit_400Regular",
-    color: Colors.lightGray,
+  goalText: {
+    fontSize: 12,
+    fontFamily: "Outfit_300Light",
+    color: Colors.muted,
+    letterSpacing: 0.5,
   },
-  chartSection: {
-    backgroundColor: Colors.charcoal,
-    borderRadius: 20,
-    padding: 20,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.04)",
+  divider: {
+    height: 0.5,
+    backgroundColor: Colors.border,
+    marginVertical: 24,
   },
+  chartSection: {},
   chartHeader: {
     flexDirection: "row" as const,
     justifyContent: "space-between" as const,
     alignItems: "center" as const,
-    marginBottom: 20,
+    marginBottom: 24,
   },
-  chartTitle: {
-    fontSize: 16,
-    fontFamily: "Outfit_600SemiBold",
-    color: Colors.white,
+  chartLabel: {
+    fontSize: 10,
+    fontFamily: "Outfit_300Light",
+    color: Colors.muted,
+    letterSpacing: 3,
   },
   timeToggle: {
     flexDirection: "row" as const,
-    backgroundColor: "rgba(255,255,255,0.06)",
-    borderRadius: 10,
-    padding: 2,
+    gap: 2,
   },
   timeButton: {
     paddingHorizontal: 14,
     paddingVertical: 6,
-    borderRadius: 8,
   },
   timeButtonActive: {
-    backgroundColor: Colors.gold,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.white,
   },
   timeButtonText: {
-    fontSize: 12,
-    fontFamily: "Outfit_600SemiBold",
-    color: Colors.lightGray,
+    fontSize: 11,
+    fontFamily: "Outfit_300Light",
+    color: Colors.muted,
+    letterSpacing: 1,
   },
   timeButtonTextActive: {
-    color: Colors.black,
+    color: Colors.white,
   },
-  statsGrid: {
+  statsRow: {
     flexDirection: "row" as const,
-    backgroundColor: Colors.charcoal,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.04)",
+    justifyContent: "space-around" as const,
+    alignItems: "center" as const,
   },
   statItem: {
     flex: 1,
     alignItems: "center" as const,
-    gap: 4,
+    gap: 6,
   },
-  statItemLabel: {
-    fontSize: 11,
-    fontFamily: "Outfit_500Medium",
-    color: Colors.lightGray,
-    letterSpacing: 0.5,
-    textTransform: "uppercase" as const,
+  statLabel: {
+    fontSize: 9,
+    fontFamily: "Outfit_300Light",
+    color: Colors.muted,
+    letterSpacing: 2,
   },
-  statItemValue: {
-    fontSize: 20,
-    fontFamily: "Outfit_700Bold",
+  statValue: {
+    fontSize: 22,
+    fontFamily: "Outfit_300Light",
+    color: Colors.white,
+    letterSpacing: -0.5,
   },
-  statDivider: {
-    width: 1,
-    height: 30,
-    backgroundColor: "rgba(255,255,255,0.08)",
-    alignSelf: "center" as const,
+  statsDivider: {
+    width: 0.5,
+    height: 28,
+    backgroundColor: Colors.border,
   },
-  insightSection: {
-    backgroundColor: Colors.charcoal,
-    borderRadius: 20,
-    padding: 20,
+  insightSection: {},
+  insightHeader: {
     flexDirection: "row" as const,
-    alignItems: "flex-start" as const,
-    gap: 14,
-    overflow: "hidden" as const,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.04)",
+    alignItems: "center" as const,
+    gap: 8,
+    marginBottom: 12,
   },
-  insightContent: {
-    flex: 1,
+  insightDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: Colors.teal,
   },
-  insightTitle: {
-    fontSize: 13,
-    fontFamily: "Outfit_600SemiBold",
-    letterSpacing: 0.5,
-    marginBottom: 4,
+  insightLabel: {
+    fontSize: 10,
+    fontFamily: "Outfit_300Light",
+    color: Colors.teal,
+    letterSpacing: 3,
   },
   insightText: {
-    fontSize: 14,
-    fontFamily: "Outfit_400Regular",
-    color: Colors.offWhite,
-    lineHeight: 20,
+    fontSize: 15,
+    fontFamily: "Outfit_300Light",
+    color: Colors.lightText,
+    lineHeight: 24,
+    letterSpacing: 0.2,
   },
 });

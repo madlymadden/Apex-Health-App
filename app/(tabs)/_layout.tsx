@@ -38,25 +38,26 @@ function ClassicTabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: Colors.gold,
-        tabBarInactiveTintColor: Colors.lightGray,
+        tabBarActiveTintColor: Colors.white,
+        tabBarInactiveTintColor: Colors.muted,
         tabBarStyle: {
           position: "absolute" as const,
-          backgroundColor: isIOS ? "transparent" : Colors.deepBlack,
-          borderTopWidth: isWeb ? 1 : 0,
+          backgroundColor: isIOS ? "transparent" : Colors.pureBlack,
+          borderTopWidth: 0.5,
           borderTopColor: Colors.border,
           elevation: 0,
           ...(isWeb ? { height: 84 } : {}),
         },
         tabBarLabelStyle: {
-          fontFamily: "Outfit_500Medium",
-          fontSize: 10,
-          letterSpacing: 0.5,
+          fontFamily: "Outfit_300Light",
+          fontSize: 9,
+          letterSpacing: 1.5,
+          textTransform: "uppercase" as const,
         },
         tabBarBackground: () =>
           isIOS ? (
             <BlurView
-              intensity={80}
+              intensity={90}
               tint="dark"
               style={StyleSheet.absoluteFill}
             />
@@ -64,7 +65,7 @@ function ClassicTabLayout() {
             <View
               style={[
                 StyleSheet.absoluteFill,
-                { backgroundColor: Colors.deepBlack },
+                { backgroundColor: Colors.pureBlack },
               ]}
             />
           ) : null,
@@ -73,36 +74,36 @@ function ClassicTabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Dashboard",
+          title: "DASHBOARD",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="pulse" size={size} color={color} />
+            <Ionicons name="pulse" size={size - 2} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="activity"
         options={{
-          title: "Activity",
+          title: "ACTIVITY",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="flame" size={size} color={color} />
+            <Ionicons name="flame-outline" size={size - 2} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="body"
         options={{
-          title: "Body",
+          title: "BODY",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="body" size={size} color={color} />
+            <Ionicons name="body-outline" size={size - 2} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: "Profile",
+          title: "PROFILE",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person" size={size} color={color} />
+            <Ionicons name="person-outline" size={size - 2} color={color} />
           ),
         }}
       />

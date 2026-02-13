@@ -9,10 +9,9 @@ import {
   RefreshControl,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated, { FadeIn } from "react-native-reanimated";
 import Colors from "@/constants/colors";
 import {
   generateWorkoutHistory,
@@ -21,86 +20,52 @@ import {
   type WorkoutEntry,
 } from "@/lib/health-data";
 
-function WorkoutCard({
-  workout,
-  index,
-}: {
-  workout: WorkoutEntry;
-  index: number;
-}) {
+function WorkoutRow({ workout }: { workout: WorkoutEntry }) {
   const intensityColor =
     workout.intensity === "high"
-      ? Colors.redAccent
+      ? Colors.red
       : workout.intensity === "moderate"
-      ? Colors.gold
-      : Colors.greenAccent;
+      ? Colors.white
+      : Colors.muted;
 
   return (
-    <Animated.View entering={FadeInDown.delay(index * 60).duration(500)}>
-      <Pressable
-        style={({ pressed }) => [
-          styles.workoutCard,
-          pressed && { opacity: 0.8, transform: [{ scale: 0.98 }] },
-        ]}
-        onPress={() => {
-          if (Platform.OS !== "web") {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          }
-        }}
-      >
-        <View style={styles.workoutLeft}>
-          <View
-            style={[
-              styles.workoutIconBg,
-              { backgroundColor: `${intensityColor}15` },
-            ]}
-          >
-            <Ionicons
-              name={workout.icon as any}
-              size={20}
-              color={intensityColor}
-            />
-          </View>
-          <View style={styles.workoutInfo}>
-            <Text style={styles.workoutType}>{workout.type}</Text>
-            <Text style={styles.workoutDate}>
-              {getRelativeDate(workout.date)}
-            </Text>
-          </View>
+    <Pressable
+      style={({ pressed }) => [
+        styles.workoutRow,
+        pressed && { opacity: 0.5 },
+      ]}
+      onPress={() => {
+        if (Platform.OS !== "web") {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        }
+      }}
+    >
+      <View style={styles.workoutLeft}>
+        <View style={[styles.intensityDot, { backgroundColor: intensityColor }]} />
+        <View style={styles.workoutInfo}>
+          <Text style={styles.workoutType}>{workout.type}</Text>
+          <Text style={styles.workoutDate}>{getRelativeDate(workout.date)}</Text>
         </View>
+      </View>
 
-        <View style={styles.workoutRight}>
-          <View style={styles.workoutStat}>
-            <Text style={styles.workoutStatValue}>
-              {formatDuration(workout.duration)}
-            </Text>
-            <Text style={styles.workoutStatLabel}>Duration</Text>
-          </View>
-          <View style={styles.workoutDivider} />
-          <View style={styles.workoutStat}>
-            <Text style={styles.workoutStatValue}>{workout.calories}</Text>
-            <Text style={styles.workoutStatLabel}>kcal</Text>
-          </View>
-          <View style={styles.workoutDivider} />
-          <View style={styles.workoutStat}>
-            <View style={styles.hrRow}>
-              <Ionicons name="heart" size={10} color={Colors.redAccent} />
-              <Text style={styles.workoutStatValue}>
-                {workout.heartRateAvg}
-              </Text>
-            </View>
-            <Text style={styles.workoutStatLabel}>avg bpm</Text>
-          </View>
+      <View style={styles.workoutStats}>
+        <View style={styles.workoutStat}>
+          <Text style={styles.workoutStatValue}>
+            {formatDuration(workout.duration)}
+          </Text>
         </View>
-
-        <View
-          style={[
-            styles.intensityBar,
-            { backgroundColor: intensityColor },
-          ]}
-        />
-      </Pressable>
-    </Animated.View>
+        <View style={styles.statDivider} />
+        <View style={styles.workoutStat}>
+          <Text style={styles.workoutStatValue}>{workout.calories}</Text>
+          <Text style={styles.workoutStatUnit}>cal</Text>
+        </View>
+        <View style={styles.statDivider} />
+        <View style={styles.workoutStat}>
+          <Text style={styles.workoutStatValue}>{workout.heartRateAvg}</Text>
+          <Text style={styles.workoutStatUnit}>bpm</Text>
+        </View>
+      </View>
+    </Pressable>
   );
 }
 
@@ -140,8 +105,8 @@ export default function ActivityScreen() {
         contentContainerStyle={[
           styles.scrollContent,
           {
-            paddingTop: insets.top + webTopInset + 16,
-            paddingBottom: 100,
+            paddingTop: insets.top + webTopInset + 20,
+            paddingBottom: 120,
           },
         ]}
         showsVerticalScrollIndicator={false}
@@ -149,58 +114,52 @@ export default function ActivityScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor={Colors.gold}
+            tintColor={Colors.white}
           />
         }
       >
-        <Text style={styles.screenTitle}>Activity</Text>
+        <Animated.View entering={FadeIn.duration(800)}>
+          <Text style={styles.screenTitle}>Activity</Text>
 
-        <View style={styles.statsRow}>
-          <View style={styles.statCard}>
-            <LinearGradient
-              colors={["rgba(232,69,60,0.12)", "rgba(232,69,60,0.02)"]}
-              style={StyleSheet.absoluteFill}
-            />
-            <Ionicons name="flame" size={18} color={Colors.redAccent} />
-            <Text style={[styles.statValue, { color: Colors.redAccent }]}>
-              {totalCalories.toLocaleString()}
-            </Text>
-            <Text style={styles.statLabel}>Total Cal</Text>
+          <View style={styles.summaryRow}>
+            <View style={styles.summaryItem}>
+              <Text style={styles.summaryValue}>
+                {totalCalories.toLocaleString()}
+              </Text>
+              <Text style={styles.summaryLabel}>TOTAL CAL</Text>
+            </View>
+            <View style={styles.summaryDivider} />
+            <View style={styles.summaryItem}>
+              <Text style={styles.summaryValue}>
+                {formatDuration(totalMinutes)}
+              </Text>
+              <Text style={styles.summaryLabel}>DURATION</Text>
+            </View>
+            <View style={styles.summaryDivider} />
+            <View style={styles.summaryItem}>
+              <Text style={styles.summaryValue}>{avgHR}</Text>
+              <Text style={styles.summaryLabel}>AVG HR</Text>
+            </View>
           </View>
 
-          <View style={styles.statCard}>
-            <LinearGradient
-              colors={["rgba(201,169,110,0.12)", "rgba(201,169,110,0.02)"]}
-              style={StyleSheet.absoluteFill}
-            />
-            <Ionicons name="time" size={18} color={Colors.gold} />
-            <Text style={[styles.statValue, { color: Colors.gold }]}>
-              {formatDuration(totalMinutes)}
+          <View style={styles.divider} />
+
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionLabel}>RECENT</Text>
+            <Text style={styles.sessionCount}>
+              {workouts.length} SESSIONS
             </Text>
-            <Text style={styles.statLabel}>Total Time</Text>
           </View>
 
-          <View style={styles.statCard}>
-            <LinearGradient
-              colors={["rgba(90,200,250,0.12)", "rgba(90,200,250,0.02)"]}
-              style={StyleSheet.absoluteFill}
-            />
-            <Ionicons name="heart" size={18} color={Colors.blueAccent} />
-            <Text style={[styles.statValue, { color: Colors.blueAccent }]}>
-              {avgHR}
-            </Text>
-            <Text style={styles.statLabel}>Avg HR</Text>
-          </View>
-        </View>
-
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Recent Workouts</Text>
-          <Text style={styles.workoutCount}>{workouts.length} sessions</Text>
-        </View>
-
-        {workouts.map((workout, index) => (
-          <WorkoutCard key={workout.id} workout={workout} index={index} />
-        ))}
+          {workouts.map((workout, index) => (
+            <React.Fragment key={workout.id}>
+              <WorkoutRow workout={workout} />
+              {index < workouts.length - 1 && (
+                <View style={styles.rowDivider} />
+              )}
+            </React.Fragment>
+          ))}
+        </Animated.View>
       </ScrollView>
     </View>
   );
@@ -215,67 +174,68 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
   },
   screenTitle: {
-    fontSize: 32,
-    fontFamily: "Outfit_700Bold",
+    fontSize: 36,
+    fontFamily: "Outfit_300Light",
     color: Colors.white,
-    letterSpacing: -0.5,
-    marginBottom: 20,
+    letterSpacing: -1,
+    marginBottom: 36,
   },
-  statsRow: {
+  summaryRow: {
     flexDirection: "row" as const,
-    gap: 10,
-    marginBottom: 28,
+    justifyContent: "space-between" as const,
+    alignItems: "center" as const,
+    marginBottom: 32,
   },
-  statCard: {
+  summaryItem: {
     flex: 1,
-    backgroundColor: Colors.charcoal,
-    borderRadius: 16,
-    padding: 14,
     alignItems: "center" as const,
     gap: 6,
-    overflow: "hidden" as const,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.04)",
   },
-  statValue: {
-    fontSize: 18,
-    fontFamily: "Outfit_700Bold",
+  summaryValue: {
+    fontSize: 24,
+    fontFamily: "Outfit_300Light",
+    color: Colors.white,
+    letterSpacing: -0.5,
   },
-  statLabel: {
-    fontSize: 10,
-    fontFamily: "Outfit_500Medium",
-    color: Colors.lightGray,
-    letterSpacing: 0.5,
-    textTransform: "uppercase" as const,
+  summaryLabel: {
+    fontSize: 9,
+    fontFamily: "Outfit_300Light",
+    color: Colors.muted,
+    letterSpacing: 2,
+  },
+  summaryDivider: {
+    width: 0.5,
+    height: 32,
+    backgroundColor: Colors.border,
+  },
+  divider: {
+    height: 0.5,
+    backgroundColor: Colors.border,
+    marginBottom: 24,
   },
   sectionHeader: {
     flexDirection: "row" as const,
     justifyContent: "space-between" as const,
     alignItems: "center" as const,
-    marginBottom: 14,
+    marginBottom: 16,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontFamily: "Outfit_600SemiBold",
-    color: Colors.white,
-    letterSpacing: -0.3,
+  sectionLabel: {
+    fontSize: 10,
+    fontFamily: "Outfit_300Light",
+    color: Colors.muted,
+    letterSpacing: 3,
   },
-  workoutCount: {
-    fontSize: 12,
-    fontFamily: "Outfit_400Regular",
-    color: Colors.lightGray,
+  sessionCount: {
+    fontSize: 10,
+    fontFamily: "Outfit_300Light",
+    color: Colors.muted,
+    letterSpacing: 2,
   },
-  workoutCard: {
-    backgroundColor: Colors.charcoal,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 10,
-    overflow: "hidden" as const,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.04)",
+  workoutRow: {
+    paddingVertical: 18,
   },
   workoutLeft: {
     flexDirection: "row" as const,
@@ -283,69 +243,56 @@ const styles = StyleSheet.create({
     gap: 12,
     marginBottom: 14,
   },
-  workoutIconBg: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    alignItems: "center" as const,
-    justifyContent: "center" as const,
+  intensityDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
   },
   workoutInfo: {
     flex: 1,
   },
   workoutType: {
-    fontSize: 16,
-    fontFamily: "Outfit_600SemiBold",
+    fontSize: 17,
+    fontFamily: "Outfit_400Regular",
     color: Colors.white,
+    letterSpacing: -0.3,
   },
   workoutDate: {
     fontSize: 12,
-    fontFamily: "Outfit_400Regular",
-    color: Colors.lightGray,
-    marginTop: 2,
+    fontFamily: "Outfit_300Light",
+    color: Colors.muted,
+    marginTop: 3,
+    letterSpacing: 0.5,
   },
-  workoutRight: {
+  workoutStats: {
     flexDirection: "row" as const,
-    justifyContent: "space-around" as const,
+    paddingLeft: 18,
+    gap: 20,
     alignItems: "center" as const,
-    backgroundColor: "rgba(255,255,255,0.03)",
-    borderRadius: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 8,
   },
   workoutStat: {
-    alignItems: "center" as const,
-    flex: 1,
+    flexDirection: "row" as const,
+    alignItems: "baseline" as const,
+    gap: 3,
   },
   workoutStatValue: {
     fontSize: 15,
-    fontFamily: "Outfit_600SemiBold",
-    color: Colors.offWhite,
+    fontFamily: "Outfit_300Light",
+    color: Colors.lightText,
   },
-  workoutStatLabel: {
+  workoutStatUnit: {
     fontSize: 10,
-    fontFamily: "Outfit_400Regular",
-    color: Colors.lightGray,
-    marginTop: 2,
-    letterSpacing: 0.3,
+    fontFamily: "Outfit_300Light",
+    color: Colors.muted,
+    letterSpacing: 0.5,
   },
-  workoutDivider: {
-    width: 1,
-    height: 24,
-    backgroundColor: "rgba(255,255,255,0.08)",
+  statDivider: {
+    width: 0.5,
+    height: 14,
+    backgroundColor: "rgba(255,255,255,0.1)",
   },
-  hrRow: {
-    flexDirection: "row" as const,
-    alignItems: "center" as const,
-    gap: 3,
-  },
-  intensityBar: {
-    position: "absolute" as const,
-    left: 0,
-    top: 0,
-    bottom: 0,
-    width: 3,
-    borderTopLeftRadius: 16,
-    borderBottomLeftRadius: 16,
+  rowDivider: {
+    height: 0.5,
+    backgroundColor: "rgba(255,255,255,0.06)",
   },
 });

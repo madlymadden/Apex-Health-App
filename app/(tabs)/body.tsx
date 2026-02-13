@@ -8,84 +8,70 @@ import {
   Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated, { FadeIn } from "react-native-reanimated";
 import Colors from "@/constants/colors";
 import { MiniChart } from "@/components/MiniChart";
 import { generateBodyMetrics, type BodyMetric } from "@/lib/health-data";
 
-function BodyMetricCard({
+function BodyMetricRow({
   metric,
-  index,
 }: {
   metric: BodyMetric;
-  index: number;
 }) {
-  const trendIcon =
-    metric.trend === "up"
-      ? "trending-up"
-      : metric.trend === "down"
-      ? "trending-down"
-      : "remove";
-  const trendColor =
+  const isPositive =
     metric.label === "Weight" || metric.label === "Body Fat" || metric.label === "Resting HR"
       ? metric.trend === "down"
-        ? Colors.greenAccent
-        : metric.trend === "up"
-        ? Colors.redAccent
-        : Colors.lightGray
-      : metric.trend === "up"
-      ? Colors.greenAccent
-      : metric.trend === "down"
-      ? Colors.redAccent
-      : Colors.lightGray;
+      : metric.trend === "up";
+  const trendColor = isPositive
+    ? Colors.green
+    : metric.trend === "stable"
+    ? Colors.muted
+    : Colors.red;
 
   return (
-    <Animated.View entering={FadeInDown.delay(index * 80).duration(500)}>
-      <Pressable
-        style={({ pressed }) => [
-          styles.bodyCard,
-          pressed && { opacity: 0.85, transform: [{ scale: 0.98 }] },
-        ]}
-        onPress={() => {
-          if (Platform.OS !== "web") {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          }
-        }}
-      >
-        <View style={styles.bodyCardLeft}>
-          <Text style={styles.bodyLabel}>{metric.label}</Text>
-          <View style={styles.bodyValueRow}>
-            <Text style={styles.bodyValue}>{metric.value}</Text>
-            <Text style={styles.bodyUnit}>{metric.unit}</Text>
-          </View>
-          <View style={styles.trendBadge}>
-            <Ionicons name={trendIcon as any} size={12} color={trendColor} />
-            <Text style={[styles.trendLabel, { color: trendColor }]}>
-              {metric.trend === "up"
-                ? "Improving"
-                : metric.trend === "down"
-                ? metric.label === "Weight" || metric.label === "Body Fat" || metric.label === "Resting HR"
-                  ? "Improving"
-                  : "Declining"
-                : "Stable"}
-            </Text>
-          </View>
+    <Pressable
+      style={({ pressed }) => [
+        styles.bodyRow,
+        pressed && { opacity: 0.5 },
+      ]}
+      onPress={() => {
+        if (Platform.OS !== "web") {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        }
+      }}
+    >
+      <View style={styles.bodyRowLeft}>
+        <Text style={styles.bodyLabel}>{metric.label.toUpperCase()}</Text>
+        <View style={styles.bodyValueRow}>
+          <Text style={styles.bodyValue}>{metric.value}</Text>
+          <Text style={styles.bodyUnit}>{metric.unit}</Text>
         </View>
+      </View>
 
-        <View style={styles.bodyCardRight}>
-          <MiniChart
-            data={metric.history}
-            width={100}
-            height={50}
+      <View style={styles.bodyRowRight}>
+        <MiniChart
+          data={metric.history}
+          width={72}
+          height={32}
+          color={trendColor}
+        />
+        <View style={styles.trendBadge}>
+          <Ionicons
+            name={
+              metric.trend === "up"
+                ? "arrow-up"
+                : metric.trend === "down"
+                ? "arrow-down"
+                : "remove"
+            }
+            size={10}
             color={trendColor}
           />
-          <Text style={styles.chartLabel}>7-week trend</Text>
         </View>
-      </Pressable>
-    </Animated.View>
+      </View>
+    </Pressable>
   );
 }
 
@@ -108,66 +94,69 @@ export default function BodyScreen() {
         contentContainerStyle={[
           styles.scrollContent,
           {
-            paddingTop: insets.top + webTopInset + 16,
-            paddingBottom: 100,
+            paddingTop: insets.top + webTopInset + 20,
+            paddingBottom: 120,
           },
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.screenTitle}>Body</Text>
+        <Animated.View entering={FadeIn.duration(800)}>
+          <Text style={styles.screenTitle}>Body</Text>
 
-        {weight && bodyFat && (
-          <View style={styles.highlightCard}>
-            <LinearGradient
-              colors={["rgba(201,169,110,0.15)", "rgba(201,169,110,0.03)"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={StyleSheet.absoluteFill}
-            />
-            <View style={styles.highlightRow}>
-              <View style={styles.highlightItem}>
-                <Text style={styles.highlightLabel}>Weight</Text>
-                <View style={styles.highlightValueRow}>
-                  <Text style={styles.highlightValue}>{weight.value}</Text>
-                  <Text style={styles.highlightUnit}>{weight.unit}</Text>
+          {weight && bodyFat && (
+            <View style={styles.heroSection}>
+              <View style={styles.heroRow}>
+                <View style={styles.heroItem}>
+                  <Text style={styles.heroLabel}>WEIGHT</Text>
+                  <View style={styles.heroValueRow}>
+                    <Text style={styles.heroValue}>{weight.value}</Text>
+                    <Text style={styles.heroUnit}>{weight.unit}</Text>
+                  </View>
+                  <MiniChart
+                    data={weight.history}
+                    width={100}
+                    height={36}
+                    color={Colors.white}
+                  />
                 </View>
-                <MiniChart
-                  data={weight.history}
-                  width={120}
-                  height={40}
-                  color={Colors.gold}
-                />
+                <View style={styles.heroDivider} />
+                <View style={styles.heroItem}>
+                  <Text style={styles.heroLabel}>BODY FAT</Text>
+                  <View style={styles.heroValueRow}>
+                    <Text style={styles.heroValue}>{bodyFat.value}</Text>
+                    <Text style={styles.heroUnit}>{bodyFat.unit}</Text>
+                  </View>
+                  <MiniChart
+                    data={bodyFat.history}
+                    width={100}
+                    height={36}
+                    color={Colors.white}
+                  />
+                </View>
               </View>
-              <View style={styles.highlightDivider} />
-              <View style={styles.highlightItem}>
-                <Text style={styles.highlightLabel}>Body Fat</Text>
-                <View style={styles.highlightValueRow}>
-                  <Text style={styles.highlightValue}>{bodyFat.value}</Text>
-                  <Text style={styles.highlightUnit}>{bodyFat.unit}</Text>
-                </View>
-                <MiniChart
-                  data={bodyFat.history}
-                  width={120}
-                  height={40}
-                  color={Colors.goldLight}
-                />
+
+              <View style={styles.progressRow}>
+                <View style={styles.progressDot} />
+                <Text style={styles.progressText}>
+                  Down 3.8 lbs and 2.8% body fat over 7 weeks
+                </Text>
               </View>
             </View>
+          )}
 
-            <View style={styles.progressNote}>
-              <Ionicons name="checkmark-circle" size={16} color={Colors.greenAccent} />
-              <Text style={styles.progressNoteText}>
-                Down 3.8 lbs and 2.8% body fat in 7 weeks
-              </Text>
-            </View>
-          </View>
-        )}
+          <View style={styles.divider} />
 
-        <Text style={styles.sectionTitle}>All Metrics</Text>
+          <Text style={styles.sectionLabel}>ALL METRICS</Text>
 
-        {metrics.map((metric, index) => (
-          <BodyMetricCard key={metric.label} metric={metric} index={index} />
-        ))}
+          {metrics.map((metric, index) => (
+            <React.Fragment key={metric.label}>
+              <BodyMetricRow metric={metric} />
+              {index < metrics.length - 1 && (
+                <View style={styles.rowDivider} />
+              )}
+            </React.Fragment>
+          ))}
+        </Animated.View>
       </ScrollView>
     </View>
   );
@@ -182,137 +171,132 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
   },
   screenTitle: {
-    fontSize: 32,
-    fontFamily: "Outfit_700Bold",
+    fontSize: 36,
+    fontFamily: "Outfit_300Light",
     color: Colors.white,
-    letterSpacing: -0.5,
-    marginBottom: 20,
+    letterSpacing: -1,
+    marginBottom: 36,
   },
-  highlightCard: {
-    backgroundColor: Colors.charcoal,
-    borderRadius: 20,
-    padding: 20,
-    marginBottom: 28,
-    overflow: "hidden" as const,
-    borderWidth: 1,
-    borderColor: "rgba(201,169,110,0.15)",
+  heroSection: {
+    marginBottom: 32,
   },
-  highlightRow: {
+  heroRow: {
     flexDirection: "row" as const,
     justifyContent: "space-between" as const,
   },
-  highlightItem: {
+  heroItem: {
     flex: 1,
     alignItems: "center" as const,
-    gap: 8,
+    gap: 10,
   },
-  highlightDivider: {
-    width: 1,
-    backgroundColor: "rgba(255,255,255,0.08)",
-    marginHorizontal: 12,
+  heroDivider: {
+    width: 0.5,
+    backgroundColor: Colors.border,
+    marginHorizontal: 16,
   },
-  highlightLabel: {
-    fontSize: 11,
-    fontFamily: "Outfit_500Medium",
-    color: Colors.lightGray,
-    letterSpacing: 1,
-    textTransform: "uppercase" as const,
+  heroLabel: {
+    fontSize: 9,
+    fontFamily: "Outfit_300Light",
+    color: Colors.muted,
+    letterSpacing: 3,
   },
-  highlightValueRow: {
+  heroValueRow: {
     flexDirection: "row" as const,
     alignItems: "baseline" as const,
     gap: 4,
   },
-  highlightValue: {
-    fontSize: 28,
-    fontFamily: "Outfit_700Bold",
-    color: Colors.gold,
+  heroValue: {
+    fontSize: 36,
+    fontFamily: "Outfit_300Light",
+    color: Colors.white,
+    letterSpacing: -1.5,
   },
-  highlightUnit: {
+  heroUnit: {
     fontSize: 14,
-    fontFamily: "Outfit_400Regular",
-    color: Colors.goldDim,
+    fontFamily: "Outfit_300Light",
+    color: Colors.muted,
   },
-  progressNote: {
+  progressRow: {
     flexDirection: "row" as const,
     alignItems: "center" as const,
     gap: 8,
-    marginTop: 16,
-    paddingTop: 14,
-    borderTopWidth: 1,
+    marginTop: 24,
+    paddingTop: 20,
+    borderTopWidth: 0.5,
     borderTopColor: "rgba(255,255,255,0.06)",
   },
-  progressNoteText: {
+  progressDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: Colors.green,
+  },
+  progressText: {
     fontSize: 13,
-    fontFamily: "Outfit_400Regular",
-    color: Colors.offWhite,
+    fontFamily: "Outfit_300Light",
+    color: Colors.lightText,
     flex: 1,
+    letterSpacing: 0.2,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontFamily: "Outfit_600SemiBold",
-    color: Colors.white,
-    letterSpacing: -0.3,
-    marginBottom: 14,
+  divider: {
+    height: 0.5,
+    backgroundColor: Colors.border,
+    marginBottom: 24,
   },
-  bodyCard: {
-    backgroundColor: Colors.charcoal,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 10,
+  sectionLabel: {
+    fontSize: 10,
+    fontFamily: "Outfit_300Light",
+    color: Colors.muted,
+    letterSpacing: 3,
+    marginBottom: 16,
+  },
+  bodyRow: {
     flexDirection: "row" as const,
-    alignItems: "center" as const,
     justifyContent: "space-between" as const,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.04)",
+    alignItems: "center" as const,
+    paddingVertical: 18,
   },
-  bodyCardLeft: {
-    flex: 1,
+  bodyRowLeft: {
+    gap: 4,
   },
   bodyLabel: {
-    fontSize: 12,
-    fontFamily: "Outfit_500Medium",
-    color: Colors.lightGray,
-    letterSpacing: 0.5,
-    textTransform: "uppercase" as const,
-    marginBottom: 4,
+    fontSize: 10,
+    fontFamily: "Outfit_300Light",
+    color: Colors.muted,
+    letterSpacing: 2,
   },
   bodyValueRow: {
     flexDirection: "row" as const,
     alignItems: "baseline" as const,
     gap: 4,
-    marginBottom: 6,
   },
   bodyValue: {
-    fontSize: 24,
-    fontFamily: "Outfit_700Bold",
+    fontSize: 26,
+    fontFamily: "Outfit_300Light",
     color: Colors.white,
+    letterSpacing: -0.5,
   },
   bodyUnit: {
-    fontSize: 13,
-    fontFamily: "Outfit_400Regular",
-    color: Colors.lightGray,
+    fontSize: 12,
+    fontFamily: "Outfit_300Light",
+    color: Colors.muted,
   },
-  trendBadge: {
+  bodyRowRight: {
     flexDirection: "row" as const,
     alignItems: "center" as const,
-    gap: 4,
+    gap: 10,
   },
-  trendLabel: {
-    fontSize: 11,
-    fontFamily: "Outfit_500Medium",
+  trendBadge: {
+    width: 20,
+    height: 20,
+    alignItems: "center" as const,
+    justifyContent: "center" as const,
   },
-  bodyCardRight: {
-    alignItems: "flex-end" as const,
-    gap: 4,
-  },
-  chartLabel: {
-    fontSize: 9,
-    fontFamily: "Outfit_400Regular",
-    color: Colors.lightGray,
-    letterSpacing: 0.3,
+  rowDivider: {
+    height: 0.5,
+    backgroundColor: "rgba(255,255,255,0.06)",
   },
 });

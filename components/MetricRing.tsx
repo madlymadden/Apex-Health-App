@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { View, StyleSheet } from "react-native";
+import { View } from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedProps,
@@ -23,7 +23,7 @@ export function MetricRing({
   size,
   strokeWidth,
   color,
-  bgColor = "rgba(255,255,255,0.06)",
+  bgColor = "rgba(255,255,255,0.05)",
 }: MetricRingProps) {
   const animatedProgress = useSharedValue(0);
   const radius = (size - strokeWidth) / 2;
@@ -31,7 +31,7 @@ export function MetricRing({
 
   useEffect(() => {
     animatedProgress.value = withTiming(Math.min(progress, 1), {
-      duration: 1200,
+      duration: 1400,
       easing: Easing.out(Easing.cubic),
     });
   }, [progress]);
@@ -60,7 +60,7 @@ export function MetricRing({
           fill="none"
           strokeDasharray={circumference}
           animatedProps={animatedProps}
-          strokeLinecap="round"
+          strokeLinecap="butt"
           rotation="-90"
           origin={`${size / 2}, ${size / 2}`}
         />

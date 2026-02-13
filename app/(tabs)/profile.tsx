@@ -8,54 +8,39 @@ import {
   Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated, { FadeIn } from "react-native-reanimated";
 import Colors from "@/constants/colors";
 
-interface SettingsItemProps {
+interface SettingsRowProps {
   icon: string;
   label: string;
   value?: string;
-  index: number;
-  showChevron?: boolean;
 }
 
-function SettingsItem({
-  icon,
-  label,
-  value,
-  index,
-  showChevron = true,
-}: SettingsItemProps) {
+function SettingsRow({ icon, label, value }: SettingsRowProps) {
   return (
-    <Animated.View entering={FadeInDown.delay(index * 50).duration(400)}>
-      <Pressable
-        style={({ pressed }) => [
-          styles.settingsItem,
-          pressed && { opacity: 0.7 },
-        ]}
-        onPress={() => {
-          if (Platform.OS !== "web") {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          }
-        }}
-      >
-        <View style={styles.settingsLeft}>
-          <View style={styles.settingsIconBg}>
-            <Ionicons name={icon as any} size={18} color={Colors.gold} />
-          </View>
-          <Text style={styles.settingsLabel}>{label}</Text>
-        </View>
-        <View style={styles.settingsRight}>
-          {value && <Text style={styles.settingsValue}>{value}</Text>}
-          {showChevron && (
-            <Ionicons name="chevron-forward" size={16} color={Colors.lightGray} />
-          )}
-        </View>
-      </Pressable>
-    </Animated.View>
+    <Pressable
+      style={({ pressed }) => [
+        styles.settingsRow,
+        pressed && { opacity: 0.5 },
+      ]}
+      onPress={() => {
+        if (Platform.OS !== "web") {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        }
+      }}
+    >
+      <View style={styles.settingsLeft}>
+        <Ionicons name={icon as any} size={18} color={Colors.muted} />
+        <Text style={styles.settingsLabel}>{label}</Text>
+      </View>
+      <View style={styles.settingsRight}>
+        {value && <Text style={styles.settingsValue}>{value}</Text>}
+        <Ionicons name="chevron-forward" size={14} color={Colors.border} />
+      </View>
+    </Pressable>
   );
 }
 
@@ -70,109 +55,75 @@ export default function ProfileScreen() {
         contentContainerStyle={[
           styles.scrollContent,
           {
-            paddingTop: insets.top + webTopInset + 16,
-            paddingBottom: 100,
+            paddingTop: insets.top + webTopInset + 20,
+            paddingBottom: 120,
           },
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.screenTitle}>Profile</Text>
+        <Animated.View entering={FadeIn.duration(800)}>
+          <Text style={styles.screenTitle}>Profile</Text>
 
-        <View style={styles.profileCard}>
-          <LinearGradient
-            colors={["rgba(201,169,110,0.15)", "rgba(201,169,110,0.03)"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={StyleSheet.absoluteFill}
-          />
-          <View style={styles.avatarContainer}>
-            <View style={styles.avatar}>
-              <Ionicons name="person" size={32} color={Colors.gold} />
+          <View style={styles.profileSection}>
+            <View style={styles.avatarRow}>
+              <View style={styles.avatar}>
+                <Ionicons name="person" size={28} color={Colors.muted} />
+              </View>
+              <View style={styles.profileInfo}>
+                <Text style={styles.userName}>Alex Morgan</Text>
+                <Text style={styles.memberSince}>Member since 2023</Text>
+              </View>
+            </View>
+
+            <View style={styles.statsRow}>
+              <View style={styles.statItem}>
+                <Text style={styles.statValue}>247</Text>
+                <Text style={styles.statLabel}>WORKOUTS</Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statItem}>
+                <Text style={styles.statValue}>38</Text>
+                <Text style={styles.statLabel}>STREAK</Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statItem}>
+                <Text style={styles.statValue}>1.2k</Text>
+                <Text style={styles.statLabel}>HOURS</Text>
+              </View>
             </View>
           </View>
-          <Text style={styles.userName}>Alex Morgan</Text>
-          <Text style={styles.userMembership}>Equinox Member Since 2023</Text>
 
-          <View style={styles.profileStats}>
-            <View style={styles.profileStat}>
-              <Text style={styles.profileStatValue}>247</Text>
-              <Text style={styles.profileStatLabel}>Workouts</Text>
-            </View>
-            <View style={styles.profileStatDivider} />
-            <View style={styles.profileStat}>
-              <Text style={styles.profileStatValue}>38</Text>
-              <Text style={styles.profileStatLabel}>Streak</Text>
-            </View>
-            <View style={styles.profileStatDivider} />
-            <View style={styles.profileStat}>
-              <Text style={styles.profileStatValue}>1.2k</Text>
-              <Text style={styles.profileStatLabel}>Hours</Text>
-            </View>
+          <View style={styles.divider} />
+
+          <Text style={styles.sectionLabel}>GOALS</Text>
+          <SettingsRow icon="walk-outline" label="Daily Steps" value="10,000" />
+          <View style={styles.rowDivider} />
+          <SettingsRow icon="flame-outline" label="Calorie Target" value="650 kcal" />
+          <View style={styles.rowDivider} />
+          <SettingsRow icon="timer-outline" label="Active Minutes" value="45 min" />
+          <View style={styles.rowDivider} />
+          <SettingsRow icon="fitness-outline" label="Weekly Workouts" value="5x" />
+
+          <View style={styles.sectionDivider} />
+
+          <Text style={styles.sectionLabel}>CONNECTED</Text>
+          <SettingsRow icon="heart-circle-outline" label="Apple Health" value="Active" />
+          <View style={styles.rowDivider} />
+          <SettingsRow icon="watch-outline" label="Apple Watch" value="Series 9" />
+
+          <View style={styles.sectionDivider} />
+
+          <Text style={styles.sectionLabel}>PREFERENCES</Text>
+          <SettingsRow icon="moon-outline" label="Appearance" value="Dark" />
+          <View style={styles.rowDivider} />
+          <SettingsRow icon="notifications-outline" label="Notifications" value="On" />
+          <View style={styles.rowDivider} />
+          <SettingsRow icon="globe-outline" label="Units" value="Imperial" />
+
+          <View style={styles.versionRow}>
+            <Text style={styles.versionText}>VITALITY V1.0</Text>
           </View>
-        </View>
-
-        <Text style={styles.sectionTitle}>Goals</Text>
-        <SettingsItem
-          icon="walk"
-          label="Daily Steps"
-          value="10,000"
-          index={0}
-        />
-        <SettingsItem
-          icon="flame"
-          label="Calorie Target"
-          value="650 kcal"
-          index={1}
-        />
-        <SettingsItem
-          icon="timer"
-          label="Active Minutes"
-          value="45 min"
-          index={2}
-        />
-        <SettingsItem
-          icon="fitness"
-          label="Weekly Workouts"
-          value="5x"
-          index={3}
-        />
-
-        <Text style={[styles.sectionTitle, { marginTop: 24 }]}>
-          Health Connect
-        </Text>
-        <SettingsItem
-          icon="heart-circle"
-          label="Apple Health"
-          value="Connected"
-          index={4}
-        />
-        <SettingsItem
-          icon="watch"
-          label="Apple Watch"
-          value="Series 9"
-          index={5}
-        />
-
-        <Text style={[styles.sectionTitle, { marginTop: 24 }]}>
-          Preferences
-        </Text>
-        <SettingsItem icon="moon" label="Appearance" value="Dark" index={6} />
-        <SettingsItem
-          icon="notifications"
-          label="Notifications"
-          value="On"
-          index={7}
-        />
-        <SettingsItem
-          icon="globe"
-          label="Units"
-          value="Imperial"
-          index={8}
-        />
-
-        <View style={styles.versionRow}>
-          <Text style={styles.versionText}>Vitality v1.0.0</Text>
-        </View>
+        </Animated.View>
       </ScrollView>
     </View>
   );
@@ -187,135 +138,135 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
   },
   screenTitle: {
-    fontSize: 32,
-    fontFamily: "Outfit_700Bold",
+    fontSize: 36,
+    fontFamily: "Outfit_300Light",
     color: Colors.white,
-    letterSpacing: -0.5,
-    marginBottom: 20,
+    letterSpacing: -1,
+    marginBottom: 36,
   },
-  profileCard: {
-    backgroundColor: Colors.charcoal,
-    borderRadius: 20,
-    padding: 24,
+  profileSection: {
+    marginBottom: 32,
+  },
+  avatarRow: {
+    flexDirection: "row" as const,
     alignItems: "center" as const,
+    gap: 16,
     marginBottom: 28,
-    overflow: "hidden" as const,
-    borderWidth: 1,
-    borderColor: "rgba(201,169,110,0.15)",
-  },
-  avatarContainer: {
-    marginBottom: 14,
   },
   avatar: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: "rgba(201,169,110,0.15)",
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: Colors.surface,
     alignItems: "center" as const,
     justifyContent: "center" as const,
-    borderWidth: 2,
-    borderColor: Colors.gold,
+    borderWidth: 0.5,
+    borderColor: Colors.border,
+  },
+  profileInfo: {
+    gap: 4,
   },
   userName: {
     fontSize: 22,
-    fontFamily: "Outfit_700Bold",
+    fontFamily: "Outfit_300Light",
     color: Colors.white,
+    letterSpacing: -0.5,
   },
-  userMembership: {
-    fontSize: 13,
-    fontFamily: "Outfit_400Regular",
-    color: Colors.goldDim,
-    marginTop: 4,
-    letterSpacing: 0.3,
+  memberSince: {
+    fontSize: 12,
+    fontFamily: "Outfit_300Light",
+    color: Colors.muted,
+    letterSpacing: 1,
   },
-  profileStats: {
+  statsRow: {
     flexDirection: "row" as const,
-    marginTop: 20,
-    paddingTop: 18,
-    borderTopWidth: 1,
-    borderTopColor: "rgba(255,255,255,0.06)",
-    width: "100%" as const,
     justifyContent: "space-around" as const,
-  },
-  profileStat: {
     alignItems: "center" as const,
+    paddingTop: 24,
+    borderTopWidth: 0.5,
+    borderTopColor: "rgba(255,255,255,0.06)",
   },
-  profileStatValue: {
-    fontSize: 20,
-    fontFamily: "Outfit_700Bold",
-    color: Colors.gold,
+  statItem: {
+    alignItems: "center" as const,
+    gap: 6,
   },
-  profileStatLabel: {
-    fontSize: 11,
-    fontFamily: "Outfit_400Regular",
-    color: Colors.lightGray,
-    marginTop: 2,
-    letterSpacing: 0.5,
-    textTransform: "uppercase" as const,
+  statValue: {
+    fontSize: 24,
+    fontFamily: "Outfit_300Light",
+    color: Colors.white,
+    letterSpacing: -0.5,
   },
-  profileStatDivider: {
-    width: 1,
-    height: 30,
-    backgroundColor: "rgba(255,255,255,0.08)",
+  statLabel: {
+    fontSize: 9,
+    fontFamily: "Outfit_300Light",
+    color: Colors.muted,
+    letterSpacing: 2,
   },
-  sectionTitle: {
-    fontSize: 13,
-    fontFamily: "Outfit_600SemiBold",
-    color: Colors.gold,
-    letterSpacing: 1.5,
-    textTransform: "uppercase" as const,
+  statDivider: {
+    width: 0.5,
+    height: 28,
+    backgroundColor: Colors.border,
+  },
+  divider: {
+    height: 0.5,
+    backgroundColor: Colors.border,
+    marginBottom: 24,
+  },
+  sectionLabel: {
+    fontSize: 10,
+    fontFamily: "Outfit_300Light",
+    color: Colors.muted,
+    letterSpacing: 3,
     marginBottom: 12,
   },
-  settingsItem: {
+  sectionDivider: {
+    height: 0.5,
+    backgroundColor: Colors.border,
+    marginVertical: 28,
+  },
+  settingsRow: {
     flexDirection: "row" as const,
     alignItems: "center" as const,
     justifyContent: "space-between" as const,
-    backgroundColor: Colors.charcoal,
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.04)",
+    paddingVertical: 16,
   },
   settingsLeft: {
     flexDirection: "row" as const,
     alignItems: "center" as const,
-    gap: 12,
-  },
-  settingsIconBg: {
-    width: 34,
-    height: 34,
-    borderRadius: 10,
-    backgroundColor: "rgba(201,169,110,0.1)",
-    alignItems: "center" as const,
-    justifyContent: "center" as const,
+    gap: 14,
   },
   settingsLabel: {
     fontSize: 15,
-    fontFamily: "Outfit_500Medium",
-    color: Colors.white,
+    fontFamily: "Outfit_400Regular",
+    color: Colors.offWhite,
+    letterSpacing: 0.2,
   },
   settingsRight: {
     flexDirection: "row" as const,
     alignItems: "center" as const,
-    gap: 6,
+    gap: 8,
   },
   settingsValue: {
     fontSize: 13,
-    fontFamily: "Outfit_400Regular",
-    color: Colors.lightGray,
+    fontFamily: "Outfit_300Light",
+    color: Colors.muted,
+    letterSpacing: 0.5,
+  },
+  rowDivider: {
+    height: 0.5,
+    backgroundColor: "rgba(255,255,255,0.06)",
   },
   versionRow: {
     alignItems: "center" as const,
-    marginTop: 28,
+    marginTop: 40,
   },
   versionText: {
-    fontSize: 12,
-    fontFamily: "Outfit_400Regular",
-    color: Colors.lightGray,
-    letterSpacing: 0.3,
+    fontSize: 10,
+    fontFamily: "Outfit_300Light",
+    color: Colors.border,
+    letterSpacing: 3,
   },
 });

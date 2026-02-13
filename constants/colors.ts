@@ -1,42 +1,45 @@
-const GOLD = "#C9A96E";
-const GOLD_LIGHT = "#D4BA82";
-const GOLD_DIM = "#8A7548";
-const BLACK = "#000000";
-const DEEP_BLACK = "#0A0A0A";
+const GOLD = "#D4AF37";
+const GOLD_LIGHT = "#E5C76B";
+const GOLD_DIM = "#8A7A3A";
+const PURE_BLACK = "#000000";
+const DEEP_BLACK = "#0D0D0D";
 const CHARCOAL = "#1A1A1A";
-const DARK_GRAY = "#2A2A2A";
-const MID_GRAY = "#3A3A3A";
-const LIGHT_GRAY = "#8A8A8A";
-const OFF_WHITE = "#F5F0E8";
+const SURFACE = "#222222";
+const ELEVATED = "#2B2B2B";
+const BORDER = "#333333";
+const MUTED = "#666666";
+const SECONDARY_TEXT = "#999999";
+const LIGHT_TEXT = "#B0B0B0";
+const OFF_WHITE = "#E8E8E8";
 const WHITE = "#FFFFFF";
-const RED_ACCENT = "#E8453C";
-const GREEN_ACCENT = "#4CD964";
-const BLUE_ACCENT = "#5AC8FA";
+const RED = "#D94848";
+const GREEN = "#4CD964";
+const TEAL = "#5AC8D4";
 
 export default {
   light: {
     text: WHITE,
-    textSecondary: LIGHT_GRAY,
+    textSecondary: SECONDARY_TEXT,
     background: DEEP_BLACK,
-    tint: GOLD,
-    tabIconDefault: LIGHT_GRAY,
-    tabIconSelected: GOLD,
+    tint: WHITE,
+    tabIconDefault: MUTED,
+    tabIconSelected: WHITE,
   },
   gold: GOLD,
   goldLight: GOLD_LIGHT,
   goldDim: GOLD_DIM,
-  black: BLACK,
+  pureBlack: PURE_BLACK,
   deepBlack: DEEP_BLACK,
   charcoal: CHARCOAL,
-  darkGray: DARK_GRAY,
-  midGray: MID_GRAY,
-  lightGray: LIGHT_GRAY,
+  surface: SURFACE,
+  elevated: ELEVATED,
+  border: BORDER,
+  muted: MUTED,
+  secondaryText: SECONDARY_TEXT,
+  lightText: LIGHT_TEXT,
   offWhite: OFF_WHITE,
   white: WHITE,
-  redAccent: RED_ACCENT,
-  greenAccent: GREEN_ACCENT,
-  blueAccent: BLUE_ACCENT,
-  card: CHARCOAL,
-  cardElevated: DARK_GRAY,
-  border: MID_GRAY,
+  red: RED,
+  green: GREEN,
+  teal: TEAL,
 };

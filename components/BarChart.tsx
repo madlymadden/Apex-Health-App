@@ -30,9 +30,9 @@ function AnimatedBar({
 
   useEffect(() => {
     height.value = withDelay(
-      index * 80,
+      index * 60,
       withTiming((value / maxValue) * 100, {
-        duration: 800,
+        duration: 900,
         easing: Easing.out(Easing.cubic),
       })
     );
@@ -52,7 +52,7 @@ function AnimatedBar({
 }
 
 export function BarChart({ data, color, goal }: BarChartProps) {
-  const maxValue = Math.max(...data.map((d) => d.value), goal || 0) * 1.1;
+  const maxValue = Math.max(...data.map((d) => d.value), goal || 0) * 1.15;
 
   return (
     <View style={barStyles.container}>
@@ -85,15 +85,15 @@ export function BarChart({ data, color, goal }: BarChartProps) {
 
 const barStyles = StyleSheet.create({
   container: {
-    height: 160,
+    height: 180,
     position: "relative" as const,
   },
   barsRow: {
     flexDirection: "row" as const,
     justifyContent: "space-between" as const,
     alignItems: "flex-end" as const,
-    height: 140,
-    paddingHorizontal: 4,
+    height: 160,
+    paddingHorizontal: 2,
   },
   barWrapper: {
     flex: 1,
@@ -102,22 +102,20 @@ const barStyles = StyleSheet.create({
   },
   barContainer: {
     flex: 1,
-    width: 28,
+    width: 24,
     justifyContent: "flex-end" as const,
-    borderRadius: 6,
-    overflow: "hidden" as const,
   },
   bar: {
     width: "100%" as const,
-    borderRadius: 6,
-    minHeight: 4,
+    minHeight: 2,
   },
   dayLabel: {
-    color: Colors.lightGray,
-    fontSize: 11,
-    marginTop: 6,
-    fontFamily: "Outfit_400Regular",
-    letterSpacing: 0.5,
+    color: Colors.muted,
+    fontSize: 10,
+    marginTop: 8,
+    fontFamily: "Outfit_300Light",
+    letterSpacing: 1,
+    textTransform: "uppercase" as const,
   },
   goalLine: {
     position: "absolute" as const,
@@ -127,7 +125,7 @@ const barStyles = StyleSheet.create({
   },
   goalDash: {
     height: 1,
-    backgroundColor: Colors.goldDim,
-    opacity: 0.4,
+    backgroundColor: Colors.muted,
+    opacity: 0.3,
   },
 });

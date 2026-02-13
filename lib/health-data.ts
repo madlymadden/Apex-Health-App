@@ -45,7 +45,7 @@ export function generateDailyMetrics(): HealthMetric[] {
       unit: "",
       goal: 10000,
       icon: "walk",
-      color: "#C9A96E",
+      color: "#FFFFFF",
       trend: randomBetween(-5, 12),
     },
     {
@@ -55,7 +55,7 @@ export function generateDailyMetrics(): HealthMetric[] {
       unit: "kcal",
       goal: 650,
       icon: "flame",
-      color: "#E8453C",
+      color: "#D94848",
       trend: randomBetween(-3, 15),
     },
     {
@@ -65,7 +65,7 @@ export function generateDailyMetrics(): HealthMetric[] {
       unit: "bpm",
       goal: 100,
       icon: "heart",
-      color: "#FF6B6B",
+      color: "#D94848",
       trend: randomBetween(-2, 2),
     },
     {
@@ -75,7 +75,7 @@ export function generateDailyMetrics(): HealthMetric[] {
       unit: "min",
       goal: 45,
       icon: "timer",
-      color: "#5AC8FA",
+      color: "#5AC8D4",
       trend: randomBetween(0, 20),
     },
   ];
