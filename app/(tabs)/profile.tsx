@@ -138,9 +138,40 @@ export default function ProfileScreen() {
           <View style={styles.sectionDivider} />
 
           <Text style={styles.sectionLabel}>CONNECTED</Text>
-          <SettingsRow icon="heart-circle-outline" label="Apple Health" value="Active" />
+          <SettingsRow
+            icon="apps-outline"
+            label="Connected Apps"
+            value="6 Active"
+            onPress={() => router.push("/connected-apps")}
+          />
           <View style={styles.rowDivider} />
-          <SettingsRow icon="watch-outline" label="Apple Watch" value="Series 9" />
+          <SettingsRow
+            icon="heart-circle-outline"
+            label="Apple Health"
+            value="Active"
+            onPress={() => router.push("/apple-health")}
+          />
+          <View style={styles.rowDivider} />
+          <SettingsRow
+            icon="bicycle-outline"
+            label="Strava"
+            value="Synced"
+            onPress={() => router.push("/strava")}
+          />
+          <View style={styles.rowDivider} />
+          <SettingsRow
+            icon="barbell-outline"
+            label="Workout Import"
+            value="Hevy, Strong"
+            onPress={() => router.push("/workout-imports")}
+          />
+          <View style={styles.rowDivider} />
+          <SettingsRow
+            icon="nutrition-outline"
+            label="Nutrition"
+            value="Synced"
+            onPress={() => router.push("/nutrition-sync")}
+          />
 
           <View style={styles.sectionDivider} />
 
