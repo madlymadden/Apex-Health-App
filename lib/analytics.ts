@@ -4,7 +4,14 @@ import {
   bodyMeasurementsService, 
   nutritionService 
 } from './database';
-import { subDays, startOfDay, endOfDay, eachDayOfInterval, format } from 'date-fns';
+import { subDays, startOfDay, endOfDay, format } from 'date-fns';
+
+interface WorkoutStatsSummary {
+  totalWorkouts: number;
+  totalDuration: number;
+  totalCalories: number;
+  avgHeartRate: number;
+}
 
 export interface AnalyticsInsight {
   id: string;
@@ -332,7 +339,7 @@ class AnalyticsService {
     userId: string, 
     weekStart: Date, 
     weekEnd: Date, 
-    workoutStats: any
+    workoutStats: WorkoutStatsSummary
   ): Promise<AnalyticsInsight[]> {
     const insights: AnalyticsInsight[] = [];
 

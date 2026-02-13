@@ -253,10 +253,15 @@ declare module 'react-native-chart-kit' {
 }
 
 declare module 'expo-notifications' {
+  export interface NotificationRequestInput {
+    content: NotificationContentInput;
+    trigger: NotificationTriggerInput | Date | null;
+  }
+
   export interface NotificationRequest {
     identifier: string;
     content: NotificationContentInput;
-    trigger: NotificationTriggerInput | null;
+    trigger: NotificationTriggerInput | Date | null;
   }
 
   export interface NotificationContentInput {
@@ -280,7 +285,7 @@ declare module 'expo-notifications' {
   }): void;
 
   export function requestPermissionsAsync(): Promise<{ status: string }>;
-  export function scheduleNotificationAsync(request: NotificationRequest): Promise<string>;
+  export function scheduleNotificationAsync(request: NotificationRequestInput): Promise<string>;
   export function cancelScheduledNotificationAsync(identifier: string): Promise<void>;
   export function getAllScheduledNotificationsAsync(): Promise<NotificationRequest[]>;
   export function dismissAllNotificationsAsync(): Promise<void>;

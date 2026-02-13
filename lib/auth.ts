@@ -1,8 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import bcrypt from 'bcryptjs';
+import * as Crypto from 'expo-crypto';
 import { z } from 'zod';
 import { userService, activityLogsService } from './database';
-import type { User } from '../shared/schema';
+import type { User as DbUser } from '../shared/schema';
+
+export type User = Omit<DbUser, 'passwordHash'>;
 
 export interface AuthState {
   user: User | null;
@@ -64,8 +67,7 @@ class AuthService {
         throw new Error('Invalid email or password');
       }
 
-      // Generate JWT token (simplified - in production use proper JWT)
-      const token = this.generateToken(user.id);
+      const token = await this.generateToken(user.id);
 
       // Store auth data
       await AsyncStorage.setItem(this.TOKEN_KEY, token);
@@ -115,8 +117,7 @@ class AuthService {
         name: validated.name,
       });
 
-      // Generate JWT token
-      const token = this.generateToken(newUser.id);
+      const token = await this.generateToken(newUser.id);
 
       // Store auth data
       await AsyncStorage.setItem(this.TOKEN_KEY, token);
@@ -169,7 +170,7 @@ class AuthService {
       const userStr = await AsyncStorage.getItem(this.USER_KEY);
       if (!userStr) return null;
       
-      const user = JSON.parse(userStr);
+      const user = JSON.parse(userStr) as User;
       
       // Verify user still exists in database
       const dbUser = await userService.getUserById(user.id);
@@ -206,8 +207,7 @@ class AuthService {
       const user = await this.getCurrentUser();
       if (!user) return null;
 
-      // Generate new token
-      const newToken = this.generateToken(user.id);
+      const newToken = await this.generateToken(user.id);
       
       // Store new token
       await AsyncStorage.setItem(this.TOKEN_KEY, newToken);
@@ -239,26 +239,61 @@ class AuthService {
     }
   }
 
-  private generateToken(userId: string): string {
-    // Simplified token generation - in production use proper JWT
+  private async generateToken(userId: string): Promise<string> {
     const payload = {
       userId,
       iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60), // 7 days
+      exp: Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60),
     };
-    
-    return btoa(JSON.stringify(payload));
+
+    const payloadString = JSON.stringify(payload);
+    const signature = await this.createTokenSignature(payloadString);
+    return `${payloadString}|${signature}`;
+  }
+
+  private async createTokenSignature(payloadString: string): Promise<string> {
+    const secret = typeof process !== 'undefined' && process.env?.JWT_SECRET
+      ? process.env.JWT_SECRET
+      : 'vitality-demo-secret-change-in-production';
+
+    return Crypto.digestStringAsync(
+      Crypto.CryptoDigestAlgorithm.SHA256,
+      `${payloadString}.${secret}`
+    );
   }
 
   private async verifyToken(token: string): Promise<{ userId: string } | null> {
     try {
-      const payload = JSON.parse(atob(token));
-      
-      // Check if token is expired
+      if (!token) {
+        return null;
+      }
+
+      const separatorIndex = token.lastIndexOf('|');
+      if (separatorIndex <= 0 || separatorIndex >= token.length - 1) {
+        return null;
+      }
+
+      const payloadString = token.slice(0, separatorIndex);
+      const signature = token.slice(separatorIndex + 1);
+
+      const expectedSignature = await this.createTokenSignature(payloadString);
+      if (expectedSignature !== signature) {
+        return null;
+      }
+
+      const payload = JSON.parse(payloadString) as {
+        userId?: string;
+        exp?: number;
+      };
+
+      if (!payload.userId || typeof payload.exp !== 'number') {
+        return null;
+      }
+
       if (payload.exp < Math.floor(Date.now() / 1000)) {
         return null;
       }
-      
+
       return { userId: payload.userId };
     } catch (error) {
       return null;

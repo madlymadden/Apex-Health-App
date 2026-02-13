@@ -1,5 +1,6 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from './auth-context';
 
 // Configure notification handler
@@ -30,6 +31,7 @@ export interface AchievementNotification {
 
 class NotificationService {
   private static instance: NotificationService;
+  private readonly NOTIFICATION_IDS_PREFIX = 'notification_ids_';
 
   private constructor() {}
 
@@ -76,7 +78,7 @@ class NotificationService {
 
       // Schedule notifications for each trigger date
       const notificationIds: string[] = [];
-      for (const trigger of triggerDates) {
+      for (const triggerDate of triggerDates) {
         const id = await Notifications.scheduleNotificationAsync({
           content: {
             title: schedule.title,
@@ -87,7 +89,7 @@ class NotificationService {
             },
             sound: 'default',
           },
-          trigger,
+          trigger: triggerDate,
         });
         notificationIds.push(id);
       }
@@ -132,7 +134,7 @@ class NotificationService {
           data: notification.data || {},
           sound: 'default',
         },
-        trigger: null, // Show immediately
+        trigger: null,
       });
     } catch (error) {
       console.error('Error sending instant notification:', error);
@@ -289,12 +291,8 @@ class NotificationService {
 
   private async storeNotificationIds(scheduleId: string, notificationIds: string[]): Promise<void> {
     try {
-      // In a real app, you'd store this in AsyncStorage or your database
-      // For now, we'll use a simple in-memory approach
-      if (typeof window !== 'undefined') {
-        const key = `notification_ids_${scheduleId}`;
-        localStorage.setItem(key, JSON.stringify(notificationIds));
-      }
+      const key = `${this.NOTIFICATION_IDS_PREFIX}${scheduleId}`;
+      await AsyncStorage.setItem(key, JSON.stringify(notificationIds));
     } catch (error) {
       console.error('Error storing notification IDs:', error);
     }
@@ -302,12 +300,9 @@ class NotificationService {
 
   private async getStoredNotificationIds(scheduleId: string): Promise<string[]> {
     try {
-      if (typeof window !== 'undefined') {
-        const key = `notification_ids_${scheduleId}`;
-        const stored = localStorage.getItem(key);
-        return stored ? JSON.parse(stored) : [];
-      }
-      return [];
+      const key = `${this.NOTIFICATION_IDS_PREFIX}${scheduleId}`;
+      const stored = await AsyncStorage.getItem(key);
+      return stored ? JSON.parse(stored) : [];
     } catch (error) {
       console.error('Error getting stored notification IDs:', error);
       return [];
@@ -316,10 +311,8 @@ class NotificationService {
 
   private async clearStoredNotificationIds(scheduleId: string): Promise<void> {
     try {
-      if (typeof window !== 'undefined') {
-        const key = `notification_ids_${scheduleId}`;
-        localStorage.removeItem(key);
-      }
+      const key = `${this.NOTIFICATION_IDS_PREFIX}${scheduleId}`;
+      await AsyncStorage.removeItem(key);
     } catch (error) {
       console.error('Error clearing stored notification IDs:', error);
     }

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Platform } from 'react-native';
 import { securityService } from './security';
-import { useAuth } from './auth';
+import { useAuth } from './auth-context';
 import { AppError } from './error-handling';
 
 // Security hook for React components
@@ -110,9 +110,9 @@ export function useSecurity() {
       message,
       timestamp: Date.now(),
     };
-    
-    setSecurityEvents(prev => [...prev.slice(-9), event]); // Keep last 10 events
-  }, []);
+
+    setSecurityEvents([...securityEvents.slice(-9), event]); // Keep last 10 events
+  }, [securityEvents]);
 
   // Validate password strength
   const validatePassword = useCallback((password: string) => {
@@ -290,7 +290,7 @@ export function useSecurity() {
 
 // Hook for secure API calls
 export function useSecureApi() {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<AppError | null>(null);
 
@@ -311,8 +311,8 @@ export function useSecureApi() {
       };
 
       // Add authentication token if available
-      if (user?.accessToken) {
-        secureHeaders['Authorization'] = `Bearer ${user.accessToken}`;
+      if (token) {
+        secureHeaders['Authorization'] = `Bearer ${token}`;
       }
 
       const response = await fetch(url, {
@@ -375,7 +375,7 @@ export function useFormSecurity() {
     }
 
     lastSubmitTime.current = now;
-    setSubmitAttempts(prev => prev + 1);
+    setSubmitAttempts(submitAttempts + 1);
   }, [submitAttempts]);
 
   const resetSubmitAttempts = useCallback(() => {
