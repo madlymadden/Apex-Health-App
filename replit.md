@@ -31,21 +31,34 @@ Design aesthetic: Equinox app-inspired dark luxury minimalism — sharp edges, l
 
 ### Data Layer
 
-- **Mock Data**: `lib/health-data.ts` generates randomized health metrics, workout history, body metrics, and weekly chart data client-side
+- **Mock Data**: `lib/health-data.ts` generates randomized health metrics, workout history, body metrics, weekly chart data, Apple Health data (vitals, sleep, nutrition, activity), Strava activities, importable workouts (Hevy/Strong), nutrition entries (NutriFactor/Sweetgreen), and connected app definitions
+- **Persistence**: AsyncStorage via `lib/storage.ts` for workouts, goals, profile, and onboarding state
+- **Health Context**: `lib/health-context.tsx` provides HealthProvider with metrics, workouts, goals, profile, and CRUD operations
 - **ORM**: Drizzle ORM with PostgreSQL dialect ready for real data
 - **Schema**: `shared/schema.ts` — users table with UUID, username, password
 
 ### Key Files
 
-- `app/(tabs)/index.tsx` — Dashboard with hero score, metric rings, metric rows
+- `app/(tabs)/index.tsx` — Dashboard with hero score, metric rings, metric rows, streak calendar, animated counters, live heart rate
 - `app/(tabs)/activity.tsx` — Workout history with intensity dots and stats
 - `app/(tabs)/body.tsx` — Body composition metrics with trend charts
-- `app/(tabs)/profile.tsx` — User profile, goals, connected devices, preferences
+- `app/(tabs)/profile.tsx` — User profile, goals, connected apps links, preferences
 - `app/metric/[id].tsx` — Modal detail view with ring, bar chart, stats, insight
+- `app/add-workout.tsx` — Add workout modal with 8 workout types and stats
+- `app/workout/[id].tsx` — Workout detail modal with heart rate zones, notes, delete
+- `app/edit-goals.tsx` — Editable goals modal
+- `app/onboarding.tsx` — 3-page first-launch onboarding
+- `app/connected-apps.tsx` — Connected Apps hub with 8 integration tiles (Apple Health, Strava, Hevy, Strong, NutriFactor, Sweetgreen, Apple Watch, WHOOP)
+- `app/apple-health.tsx` — Apple Health detail with 4 tabs: vitals (6 real-time readings), sleep (7-night visualization), nutrition (macro tracking), activity (7-day stats)
+- `app/strava.tsx` — Strava integration with activity import, sync, and detailed activity cards
+- `app/workout-imports.tsx` — Workout import from Hevy/Strong with expandable exercise lists, source filtering
+- `app/nutrition-sync.tsx` — Nutrition import from NutriFactor/Sweetgreen with meal cards, macro breakdowns, ingredient chips
 - `components/MetricRing.tsx` — Animated SVG circular progress
 - `components/BarChart.tsx` — Animated weekly bar chart
 - `components/MiniChart.tsx` — SVG sparkline chart
-- `lib/health-data.ts` — Health data generation utilities
+- `lib/health-data.ts` — Health data generation utilities and integration data types
+- `lib/health-context.tsx` — React context for health state management
+- `lib/storage.ts` — AsyncStorage persistence layer
 - `constants/colors.ts` — Theme color constants
 
 ### Build & Development
