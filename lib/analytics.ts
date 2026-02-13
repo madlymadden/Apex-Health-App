@@ -3,7 +3,7 @@ import {
   workoutService, 
   bodyMeasurementsService, 
   nutritionService 
-} from './database';
+} from './database.native';
 import { subDays, startOfDay, endOfDay, format } from 'date-fns';
 
 interface WorkoutStatsSummary {

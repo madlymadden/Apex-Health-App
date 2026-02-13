@@ -1,5 +1,5 @@
 import { Platform } from 'react-native';
-import { connectedAppsService } from './database';
+import { connectedAppsService } from './database.native';
 import { useAuth } from './auth-context';
 
 // Apple Health is only available on iOS

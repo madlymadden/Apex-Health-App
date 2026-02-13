@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import bcrypt from 'bcryptjs';
 import * as Crypto from 'expo-crypto';
 import { z } from 'zod';
-import { userService, activityLogsService } from './database';
+import { userService, activityLogsService } from './database.native';
 import type { User as DbUser } from '../shared/schema';
 
 export type User = Omit<DbUser, 'passwordHash'>;
