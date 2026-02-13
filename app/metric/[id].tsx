@@ -15,8 +15,8 @@ import Animated, { FadeIn } from "react-native-reanimated";
 import Colors from "@/constants/colors";
 import { MetricRing } from "@/components/MetricRing";
 import { BarChart } from "@/components/BarChart";
+import { useHealth } from "@/lib/health-context";
 import {
-  generateDailyMetrics,
   generateWeeklyData,
   formatNumber,
   type HealthMetric,
@@ -26,17 +26,17 @@ import {
 export default function MetricDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
+  const { metrics: allMetrics } = useHealth();
   const [metric, setMetric] = useState<HealthMetric | null>(null);
   const [weeklyData, setWeeklyData] = useState<WeeklyData[]>([]);
   const [timeRange, setTimeRange] = useState<"week" | "month">("week");
   const webTopInset = Platform.OS === "web" ? 67 : 0;
 
   useEffect(() => {
-    const metrics = generateDailyMetrics();
-    const found = metrics.find((m) => m.id === id);
+    const found = allMetrics.find((m) => m.id === id);
     if (found) setMetric(found);
     if (id) setWeeklyData(generateWeeklyData(id));
-  }, [id]);
+  }, [id, allMetrics]);
 
   if (!metric) {
     return (
