@@ -1,0 +1,134 @@
+{
+  "colorScheme": "light",
+  "fonts": [
+    {
+      "family": "Helvetica Neue",
+      "role": "body"
+    },
+    {
+      "family": "Arial",
+      "role": "body"
+    },
+    {
+      "family": "pragmatica-extended",
+      "role": "unknown"
+    }
+  ],
+  "colors": {
+    "primary": "#000000",
+    "accent": "#585858",
+    "background": "#FFFFFF",
+    "textPrimary": "#252525",
+    "link": "#000000"
+  },
+  "typography": {
+    "fontFamilies": {
+      "primary": "Helvetica Neue",
+      "heading": "Helvetica Neue"
+    },
+    "fontStacks": {
+      "heading": [
+        "sans-serif"
+      ],
+      "body": [
+        "sans-serif"
+      ],
+      "paragraph": [
+        "Helvetica Neue",
+        "Arial",
+        "sans-serif"
+      ]
+    },
+    "fontSizes": {
+      "h1": "13px",
+      "h2": "72.904px",
+      "body": "19.912px"
+    }
+  },
+  "spacing": {
+    "baseUnit": 4,
+    "borderRadius": "0px"
+  },
+  "components": {
+    "buttonPrimary": {
+      "background": "#585858",
+      "textColor": "#FFFFFF",
+      "borderRadius": "300px",
+      "borderRadiusCorners": {
+        "topLeft": "300px",
+        "topRight": "300px",
+        "bottomRight": "300px",
+        "bottomLeft": "300px"
+      },
+      "shadow": "none"
+    },
+    "buttonSecondary": {
+      "background": "#FFFFFF",
+      "textColor": "#747171",
+      "borderRadius": "0px",
+      "borderRadiusCorners": {
+        "topLeft": "0px",
+        "topRight": "0px",
+        "bottomRight": "0px",
+        "bottomLeft": "0px"
+      },
+      "shadow": "none"
+    }
+  },
+  "images": {
+    "logo": "File saved at: attached_assets/logo.webp",
+    "favicon": "File saved at: attached_assets/favicon.txt",
+    "ogImage": "http://static1.squarespace.com/static/650a32ba207efd35b87c4854/650a33460baf9d1a6ecf58ef/65289ce1958f231b7374bcc9/1697430762930/equinox-sans-thumb.png?format=1500w",
+    "logoHref": "File saved at: attached_assets/logoHref.html",
+    "logoAlt": "JONATHAN CONWAY"
+  },
+  "__llm_logo_reasoning": {
+    "selectedIndex": 1,
+    "reasoning": "Selected #1 because it is visible, located in the header, links to the homepage, and matches the brand name 'JONATHAN CONWAY'.",
+    "confidence": 0.95,
+    "source": "llm"
+  },
+  "__llm_button_reasoning": {
+    "primary": {
+      "index": 0,
+      "text": "Skip to Content",
+      "reasoning": "Button #0 ('Skip to Content') is styled as a primary button with a distinct background color (#585858) and a class indicating primary status ('sqs-button-element--primary')."
+    },
+    "secondary": {
+      "index": 1,
+      "text": "0\n              \n            \n          \n        \n      \n\n      \n\n\n\n\n\n\n\n\n\n\n\n\n  \n    \n  \n    \n  \n\n  \n",
+      "reasoning": "Button #1 has a different background color (#FFFFFF) and serves a less prominent function, making it suitable as a secondary button."
+    },
+    "confidence": 0.9
+  },
+  "personality": {
+    "tone": "professional",
+    "energy": "low",
+    "targetAudience": "design professionals"
+  },
+  "designSystem": {
+    "framework": "custom",
+    "componentLibrary": ""
+  },
+  "confidence": {
+    "buttons": 0.9,
+    "colors": 0.9,
+    "overall": 0.9
+  },
+  "__llm_metadata": {
+    "logoSelection": {
+      "llmCalled": true,
+      "llmSucceeded": true,
+      "finalSource": "llm",
+      "rawLogoSelection": {
+        "selectedLogoIndex": 1,
+        "selectedLogoReasoning": "Selected #1 because it is visible, located in the header, links to the homepage, and matches the brand name 'JONATHAN CONWAY'.",
+        "confidence": 0.95
+      }
+    },
+    "buttonClassification": {
+      "llmCalled": true,
+      "llmSucceeded": true
+    }
+  }
+}

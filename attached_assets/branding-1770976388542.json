@@ -1,0 +1,131 @@
+{
+  "colorScheme": "light",
+  "fonts": [
+    {
+      "family": "Inter",
+      "role": "body"
+    },
+    {
+      "family": "Catamaran-Regular",
+      "role": "heading"
+    }
+  ],
+  "colors": {
+    "primary": "#1D83EA",
+    "accent": "#267FE8",
+    "background": "#FFFFFF",
+    "textPrimary": "#267FE8",
+    "link": "#267FE8"
+  },
+  "typography": {
+    "fontFamilies": {
+      "primary": "Inter",
+      "heading": "Catamaran-Regular"
+    },
+    "fontStacks": {
+      "heading": [
+        "Inter",
+        "sans-serif"
+      ],
+      "body": [
+        "Inter",
+        "sans-serif"
+      ],
+      "paragraph": [
+        "Inter",
+        "sans-serif"
+      ]
+    },
+    "fontSizes": {
+      "h1": "34px",
+      "h2": "32px",
+      "body": "17px"
+    }
+  },
+  "spacing": {
+    "baseUnit": 4,
+    "borderRadius": "5px"
+  },
+  "components": {
+    "buttonPrimary": {
+      "background": "#267FE8",
+      "textColor": "#FFFFFF",
+      "borderRadius": "12px",
+      "borderRadiusCorners": {
+        "topLeft": "12px",
+        "topRight": "12px",
+        "bottomRight": "12px",
+        "bottomLeft": "12px"
+      },
+      "shadow": "none"
+    },
+    "buttonSecondary": {
+      "background": "#F7F9FB",
+      "textColor": "#0A0A0A",
+      "borderRadius": "0px",
+      "borderRadiusCorners": {
+        "topLeft": "0px",
+        "topRight": "0px",
+        "bottomRight": "0px",
+        "bottomLeft": "0px"
+      },
+      "shadow": "none"
+    }
+  },
+  "images": {
+    "logo": "https://www.hevyapp.com/wp-content/uploads/logo-hevy-black.svg",
+    "favicon": "https://www.hevyapp.com/wp-content/uploads/2019/06/cropped-Icon1024_Android-32x32.png",
+    "ogImage": "https://www.hevyapp.com/wp-content/uploads/img-4684-2-1024x683.png",
+    "logoHref": "https://www.hevyapp.com/",
+    "logoAlt": "updated Hevy app logo"
+  },
+  "__llm_logo_reasoning": {
+    "selectedIndex": 0,
+    "reasoning": "Selected #0 because it is visible, located in the header, links to the homepage, and matches the brand name 'Hevy'.",
+    "confidence": 0.95,
+    "source": "llm"
+  },
+  "__llm_button_reasoning": {
+    "primary": {
+      "index": 0,
+      "text": "Sign Up",
+      "reasoning": "Button #0 ('Sign Up') is the primary CTA due to its vibrant brand color (#267FE8) and action-oriented text, making it the most prominent call-to-action on the page."
+    },
+    "secondary": {
+      "index": 1,
+      "text": "Learn More",
+      "reasoning": "Button #1 ('Learn More') is selected as secondary because it has a different, more subtle background color (#F7F9FB) and serves as a less prominent action."
+    },
+    "confidence": 0.95
+  },
+  "personality": {
+    "tone": "modern",
+    "energy": "medium",
+    "targetAudience": "fitness enthusiasts and gym-goers"
+  },
+  "designSystem": {
+    "framework": "custom",
+    "componentLibrary": ""
+  },
+  "confidence": {
+    "buttons": 0.95,
+    "colors": 0.9,
+    "overall": 0.925
+  },
+  "__llm_metadata": {
+    "logoSelection": {
+      "llmCalled": true,
+      "llmSucceeded": true,
+      "finalSource": "llm",
+      "rawLogoSelection": {
+        "selectedLogoIndex": 0,
+        "selectedLogoReasoning": "Selected #0 because it is visible, located in the header, links to the homepage, and matches the brand name 'Hevy'.",
+        "confidence": 0.95
+      }
+    },
+    "buttonClassification": {
+      "llmCalled": true,
+      "llmSucceeded": true
+    }
+  }
+}
